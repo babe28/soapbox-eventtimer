@@ -68,6 +68,25 @@ body {
   color: var(--muted);
 }
 
+.top-nav {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.nav-link {
+  padding: 9px 14px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--panel-strong);
+  background: rgba(22, 48, 43, 0.08);
+}
+
+.nav-link.current {
+  background: var(--panel-strong);
+  color: white;
+}
+
 .hero-status {
   display: grid;
   grid-template-columns: repeat(2, minmax(140px, 1fr));
@@ -78,6 +97,7 @@ body {
 .status-chip,
 .metric-card,
 .schedule-item,
+.editor-card,
 .timer-card,
 .json-grid article {
   border: 1px solid var(--line);
@@ -179,33 +199,42 @@ body {
 
 .schedule-list,
 .timer-list,
-.json-grid {
+.json-grid,
+.editor-list {
   display: grid;
   gap: 14px;
 }
 
-.schedule-item {
+.schedule-item,
+.editor-card {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 16px;
   padding: 18px;
 }
 
-.schedule-item.is-current {
+.schedule-item.is-current,
+.editor-card.is-current {
   outline: 2px solid var(--accent);
   background: linear-gradient(145deg, rgba(255, 247, 241, 0.96), rgba(255, 252, 247, 0.96));
 }
 
 .schedule-item h3,
+.editor-card h3,
 .timer-card h3,
 .json-grid h3 {
   margin: 0 0 6px;
 }
 
 .schedule-item p,
+.editor-card p,
 .timer-card p {
   margin: 0;
   color: var(--muted);
+}
+
+.editor-card {
+  cursor: pointer;
 }
 
 .schedule-side {
@@ -251,6 +280,64 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.editor-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.editor-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.editor-form input,
+.editor-form select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font: inherit;
+}
+
+.editor-actions,
+.editor-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.editor-actions {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+}
+
+.editor-actions button,
+.danger-button {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 10px 14px;
+  font: inherit;
+  background: var(--panel-strong);
+  color: white;
+}
+
+.danger-button {
+  background: var(--danger);
+}
+
+.editor-note {
+  margin: 0;
+  color: var(--muted);
+}
+
 pre {
   margin: 0;
   max-height: 360px;
@@ -266,7 +353,8 @@ pre {
 @media (max-width: 960px) {
   .hero,
   .panel-head,
-  .schedule-item {
+  .schedule-item,
+  .editor-card {
     grid-template-columns: 1fr;
     display: grid;
   }
@@ -279,7 +367,8 @@ pre {
 
   .hero-status,
   .overview-metrics,
-  .json-grid {
+  .json-grid,
+  .editor-form {
     grid-template-columns: 1fr;
   }
 

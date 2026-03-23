@@ -160,6 +160,26 @@ function findTimer(timerId) {
   return state.timers.find((timer) => String(timer.id) === String(timerId));
 }
 
+function normalizeScheduleItem(item, index) {
+  const parsedStart = item?.start ? new Date(item.start) : new Date();
+  const start = Number.isNaN(parsedStart.getTime())
+    ? new Date().toISOString()
+    : parsedStart.toISOString();
+  const numericDuration = Number(item?.duration ?? 300);
+
+  return {
+    id: String(item?.id || `evt_${String(index + 1).padStart(3, '0')}`),
+    title: String(item?.title || `Event ${index + 1}`),
+    subTitle: String(item?.subTitle || ''),
+    start,
+    duration: Number.isFinite(numericDuration) && numericDuration > 0
+      ? Math.round(numericDuration)
+      : 300,
+    section: String(item?.section || 'Main Stage'),
+    type: String(item?.type || 'normal'),
+  };
+}
+
 function applyTimerAction(timer, action, value) {
   if (!timer) {
     return false;
@@ -225,15 +245,7 @@ function loadSchedule(source) {
     return createDefaultSchedule();
   }
 
-  return source.map((item, index) => ({
-    id: item.id ?? `evt_${String(index + 1).padStart(3, '0')}`,
-    title: item.title ?? `Event ${index + 1}`,
-    subTitle: item.subTitle ?? '',
-    start: item.start ?? new Date().toISOString(),
-    duration: Number(item.duration ?? 300),
-    section: item.section ?? 'Main Stage',
-    type: item.type ?? 'normal',
-  }));
+  return source.map((item, index) => normalizeScheduleItem(item, index));
 }
 
 io.on('connection', (socket) => {
@@ -266,6 +278,24 @@ io.on('connection', (socket) => {
 
 app.get('/api/bootstrap', (_req, res) => {
   res.json(getPayload());
+});
+
+app.get('/api/schedule', (_req, res) => {
+  res.json({ schedule: clone(schedule) });
+});
+
+app.put('/api/schedule', async (req, res) => {
+  if (!Array.isArray(req.body?.schedule)) {
+    res.status(400).json({ success: false, message: 'schedule must be an array.' });
+    return;
+  }
+
+  schedule = req.body.schedule.map((item, index) => normalizeScheduleItem(item, index));
+  updateCurrentScheduleId();
+  await persistSchedule();
+  await persistState();
+  io.emit('sync_state', getPayload());
+  res.json({ success: true, schedule: clone(schedule) });
 });
 
 app.post('/api/offset', async (req, res) => {
