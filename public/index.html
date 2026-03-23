@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Soapbox Event Timer Mock</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Soapbox Event Timer</p>
+          <h1>Event Dashboard Mock</h1>
+          <p class="hero-copy">
+            スケジュール、全体オフセット、個別タイマーの状態をひとつの画面で確認できる
+            モックアップです。
+          </p>
+        </div>
+        <div class="hero-status">
+          <div class="status-chip">
+            <span>Socket</span>
+            <strong id="socket-status">Connecting</strong>
+          </div>
+          <div class="status-chip">
+            <span>Displayed Time</span>
+            <strong id="displayed-time">--:--:--</strong>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard-grid">
+        <section class="panel panel-primary">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Overview</p>
+              <h2>Global Control</h2>
+            </div>
+            <button id="reset-app" class="ghost-button">Reset Mock Data</button>
+          </div>
+
+          <div class="overview-metrics">
+            <article class="metric-card">
+              <span>Global Offset</span>
+              <strong id="offset-seconds">0s</strong>
+            </article>
+            <article class="metric-card">
+              <span>Current Schedule</span>
+              <strong id="current-schedule">None</strong>
+            </article>
+            <article class="metric-card">
+              <span>Total Events</span>
+              <strong id="schedule-count">0</strong>
+            </article>
+          </div>
+
+          <div class="offset-controls">
+            <button data-offset="-300">-5m</button>
+            <button data-offset="-60">-1m</button>
+            <button data-offset="-30">-30s</button>
+            <button data-offset="30">+30s</button>
+            <button data-offset="60">+1m</button>
+            <button data-offset="300">+5m</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Live Run</p>
+              <h2>Schedule Timeline</h2>
+            </div>
+          </div>
+          <div id="schedule-list" class="schedule-list"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Timers</p>
+              <h2>Manual Control</h2>
+            </div>
+          </div>
+          <div id="timer-list" class="timer-list"></div>
+        </section>
+
+        <section class="panel panel-secondary">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Raw Data</p>
+              <h2>Current JSON Snapshot</h2>
+            </div>
+          </div>
+          <div class="json-grid">
+            <article>
+              <h3>state.json</h3>
+              <pre id="state-json"></pre>
+            </article>
+            <article>
+              <h3>schedule.json</h3>
+              <pre id="schedule-json"></pre>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "globalOffsetSeconds": 0,
+  "isPaused": false,
+  "timers": [
+    {
+      "id": 1,
+      "label": "Main Timer",
+      "mode": "down",
+      "status": "stopped",
+      "value": 180,
+      "initialValue": 180,
+      "lastUpdate": 1763888100000
+    },
+    {
+      "id": 2,
+      "label": "Stage Reset Buffer",
+      "mode": "down",
+      "status": "stopped",
+      "value": 600,
+      "initialValue": 600,
+      "lastUpdate": 1763888100000
+    }
+  ],
+  "currentScheduleId": null
+}
