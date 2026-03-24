@@ -8,25 +8,27 @@
   </head>
   <body>
     <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Soapbox Event Timer</p>
-          <h1>Schedule Editor</h1>
-          <p class="hero-copy">
-            `schedule.json` を直接編集せずに、イベントの追加・更新・削除・並び替えを行う簡易管理画面です。
-          </p>
+      <header class="hero hero-compact">
+        <div class="hero-main">
+          <div>
+            <p class="eyebrow">Soapbox Event Timer</p>
+            <h1>設定画面</h1>
+            <p class="hero-copy">
+              スケジュール編集、JSON確認、モックデータの初期化を行う画面です。
+            </p>
+          </div>
           <div class="top-nav">
             <a class="nav-link" href="/">Dashboard</a>
-            <a class="nav-link current" href="/schedule.html">Schedule Editor</a>
+            <a class="nav-link current" href="/schedule.html">Settings</a>
           </div>
         </div>
         <div class="hero-status">
           <div class="status-chip">
-            <span>Entries</span>
+            <span>登録件数</span>
             <strong id="entry-count">0</strong>
           </div>
           <div class="status-chip">
-            <span>Status</span>
+            <span>状態</span>
             <strong id="editor-status">Loading</strong>
           </div>
         </div>
@@ -37,9 +39,9 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Schedule</p>
-              <h2>Entries</h2>
+              <h2>スケジュール一覧</h2>
             </div>
-            <button id="add-entry" class="ghost-button">Add Entry</button>
+            <button id="add-entry" class="ghost-button">追加</button>
           </div>
           <div id="editor-list" class="editor-list"></div>
         </section>
@@ -48,7 +50,7 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Edit</p>
-              <h2>Entry Form</h2>
+              <h2>イベント編集</h2>
             </div>
           </div>
           <form id="entry-form" class="editor-form">
@@ -57,27 +59,27 @@
               <input name="id" type="text" required />
             </label>
             <label>
-              <span>Title</span>
+              <span>タイトル</span>
               <input name="title" type="text" required />
             </label>
             <label>
-              <span>Subtitle</span>
+              <span>サブタイトル</span>
               <input name="subTitle" type="text" />
             </label>
             <label>
-              <span>Start</span>
+              <span>開始時刻</span>
               <input name="start" type="datetime-local" required />
             </label>
             <label>
-              <span>Duration (sec)</span>
+              <span>秒数</span>
               <input name="duration" type="number" min="1" required />
             </label>
             <label>
-              <span>Section</span>
+              <span>セクション</span>
               <input name="section" type="text" required />
             </label>
             <label>
-              <span>Type</span>
+              <span>種別</span>
               <select name="type">
                 <option value="normal">normal</option>
                 <option value="break">break</option>
@@ -86,9 +88,9 @@
               </select>
             </label>
             <div class="editor-actions">
-              <button type="submit">Apply Changes</button>
-              <button type="button" id="duplicate-entry" class="ghost-button">Duplicate</button>
-              <button type="button" id="delete-entry" class="danger-button">Delete</button>
+              <button type="submit">反映</button>
+              <button type="button" id="duplicate-entry" class="ghost-button">複製</button>
+              <button type="button" id="delete-entry" class="danger-button">削除</button>
             </div>
           </form>
         </section>
@@ -97,17 +99,37 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Persist</p>
-              <h2>Save Schedule</h2>
+              <h2>保存</h2>
             </div>
           </div>
           <div class="editor-footer">
-            <p id="save-note" class="editor-note">Changes are local to this page until you save.</p>
+            <p id="save-note" class="editor-note">このページでの変更は保存するまで JSON に反映されません。</p>
             <div class="editor-actions">
-              <button id="sort-entries" type="button" class="ghost-button">Sort By Start</button>
-              <button id="save-schedule" type="button">Save To JSON</button>
+              <button id="sort-entries" type="button" class="ghost-button">開始順で並べ替え</button>
+              <button id="save-schedule" type="button">JSON に保存</button>
             </div>
           </div>
           <pre id="schedule-preview"></pre>
+        </section>
+
+        <section class="panel panel-secondary">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Raw Data</p>
+              <h2>JSON スナップショット</h2>
+            </div>
+            <button id="reset-app" class="ghost-button">モックデータを初期化</button>
+          </div>
+          <div class="json-grid">
+            <article>
+              <h3>state.json</h3>
+              <pre id="state-json"></pre>
+            </article>
+            <article>
+              <h3>schedule.json</h3>
+              <pre id="schedule-json"></pre>
+            </article>
+          </div>
         </section>
       </main>
     </div>

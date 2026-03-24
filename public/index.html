@@ -7,18 +7,19 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Soapbox Event Timer</p>
-          <h1>Event Dashboard Mock</h1>
-          <p class="hero-copy">
-            スケジュール、全体オフセット、個別タイマーの状態をひとつの画面で確認できる
-            モックアップです。
-          </p>
+    <div class="app-shell app-shell-dashboard">
+      <header class="hero hero-compact">
+        <div class="hero-main">
+          <div>
+            <p class="eyebrow">Soapbox Event Timer</p>
+            <h1>イベントダッシュボード</h1>
+            <p class="hero-copy">
+              本番表示と進行操作を 1 画面で確認するためのダッシュボードです。
+            </p>
+          </div>
           <div class="top-nav">
             <a class="nav-link current" href="/">Dashboard</a>
-            <a class="nav-link" href="/schedule.html">Schedule Editor</a>
+            <a class="nav-link" href="/schedule.html">Settings</a>
           </div>
         </div>
         <div class="hero-status">
@@ -27,33 +28,32 @@
             <strong id="socket-status">Connecting</strong>
           </div>
           <div class="status-chip">
-            <span>Displayed Time</span>
+            <span>表示時刻</span>
             <strong id="displayed-time">--:--:--</strong>
           </div>
         </div>
       </header>
 
-      <main class="dashboard-grid">
-        <section class="panel panel-primary">
+      <main class="dashboard-grid dashboard-grid-compact">
+        <section class="panel panel-primary panel-compact">
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Overview</p>
-              <h2>Global Control</h2>
+              <h2>進行コントロール</h2>
             </div>
-            <button id="reset-app" class="ghost-button">Reset Mock Data</button>
           </div>
 
           <div class="overview-metrics">
             <article class="metric-card">
-              <span>Global Offset</span>
+              <span>グローバルオフセット</span>
               <strong id="offset-seconds">0s</strong>
             </article>
             <article class="metric-card">
-              <span>Current Schedule</span>
-              <strong id="current-schedule">None</strong>
+              <span>現在の進行</span>
+              <strong id="current-schedule">待機中</strong>
             </article>
             <article class="metric-card">
-              <span>Total Events</span>
+              <span>全イベント数</span>
               <strong id="schedule-count">0</strong>
             </article>
           </div>
@@ -68,43 +68,36 @@
           </div>
         </section>
 
-        <section class="panel">
+        <section class="panel panel-feature">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Main</p>
+              <h2>現在進行中のイベント</h2>
+            </div>
+          </div>
+          <div id="current-event" class="current-event-card">
+            <p class="empty-state">進行中のイベントはありません。</p>
+          </div>
+        </section>
+
+        <section class="panel panel-timeline">
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Live Run</p>
-              <h2>Schedule Timeline</h2>
+              <h2>スケジュール一覧</h2>
             </div>
           </div>
           <div id="schedule-list" class="schedule-list"></div>
         </section>
 
-        <section class="panel">
+        <section class="panel panel-secondary panel-compact">
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Timers</p>
-              <h2>Manual Control</h2>
+              <h2>手動タイマー</h2>
             </div>
           </div>
           <div id="timer-list" class="timer-list"></div>
-        </section>
-
-        <section class="panel panel-secondary">
-          <div class="panel-head">
-            <div>
-              <p class="panel-kicker">Raw Data</p>
-              <h2>Current JSON Snapshot</h2>
-            </div>
-          </div>
-          <div class="json-grid">
-            <article>
-              <h3>state.json</h3>
-              <pre id="state-json"></pre>
-            </article>
-            <article>
-              <h3>schedule.json</h3>
-              <pre id="schedule-json"></pre>
-            </article>
-          </div>
         </section>
       </main>
     </div>

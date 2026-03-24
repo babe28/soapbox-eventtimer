@@ -50,9 +50,11 @@
   ],
   "currentScheduleId": null
 }
+```
 
-Schedule Item
-JSON
+### Schedule Item
+
+```json
 {
   "id": "evt_001",
   "title": "オープニング",
@@ -62,13 +64,18 @@ JSON
   "section": "Stage",
   "type": "normal"
 }
-5. 通信仕様
-WebSocket (Socket.io)
-sync_state: 接続時・状態変更時にサーバーから全クライアントへ全Stateを送信。
+```
 
-update_offset: クライアントからオフセットの増減（±30, ±60, ±300等）を通知。
 
-resync: 特定IDの開始を「今」に合わせる命令。
+---
+
+## 5. 通信仕様
+- **WebSocket (Socket.io)**
+- sync_state: 接続時・状態変更時にサーバーから全クライアントへ全Stateを送信。
+
+**update_offset**: クライアントからオフセットの増減（±30, ±60, ±300等）を通知。
+
+**resync**: 特定IDの開始を「今」に合わせる命令。
 
 control_timer: 独立タイマーの Start / Pause / Reset 命令。
 
@@ -79,7 +86,7 @@ HTTP API (POST)
 
 /api/timer/:id/:action: タイマー制御
 
-6. 画面構成要求
+## 6. 画面構成要求
 画面AA：全画面表示（メイン）
 視認性: 黒背景、高コントラスト、モダンなデザイン。
 
@@ -103,7 +110,7 @@ CSVインポート / エクスポート機能。
 
 各画面へのリンク（QRコード表示）。
 
-7. 実装上の注意
+## 7. 実装上の注意
 日付跨ぎ: 非対応（同一日内のみ）。
 
 時刻同期: sync_state 送信時に serverTime: Date.now() を付与し、クライアント側でローカル時計との差分を考慮すること。

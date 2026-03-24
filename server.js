@@ -19,7 +19,7 @@ const createDefaultState = () => ({
   timers: [
     {
       id: 1,
-      label: 'Main Timer',
+      label: '進行タイマー',
       mode: 'down',
       status: 'stopped',
       value: 180,
@@ -28,7 +28,7 @@ const createDefaultState = () => ({
     },
     {
       id: 2,
-      label: 'Stage Reset Buffer',
+      label: '転換バッファ',
       mode: 'down',
       status: 'stopped',
       value: 600,
@@ -58,11 +58,11 @@ const createDefaultSchedule = () => {
   base.setTime(base.getTime() - 5 * 60 * 1000);
 
   return [
-    createScheduleItem('evt_001', 'Opening', 'MC Intro', new Date(base), 300, 'Main Stage', 'normal'),
-    createScheduleItem('evt_002', 'Guest Talk', 'Interview Segment', new Date(base.getTime() + 5 * 60 * 1000), 900, 'Main Stage', 'normal'),
-    createScheduleItem('evt_003', 'Break', 'Sponsor Roll', new Date(base.getTime() + 20 * 60 * 1000), 300, 'Main Stage', 'break'),
-    createScheduleItem('evt_004', 'Panel Session', 'Community Update', new Date(base.getTime() + 25 * 60 * 1000), 1200, 'Side Stage', 'normal'),
-    createScheduleItem('evt_005', 'Closing', 'Wrap-up', new Date(base.getTime() + 45 * 60 * 1000), 300, 'Main Stage', 'normal'),
+    createScheduleItem('evt_001', 'オープニング', 'MC オープン', new Date(base), 300, 'メインステージ', 'normal'),
+    createScheduleItem('evt_002', 'ゲストトーク', 'インタビューセッション', new Date(base.getTime() + 5 * 60 * 1000), 900, 'メインステージ', 'normal'),
+    createScheduleItem('evt_003', '休憩', 'スポンサー紹介', new Date(base.getTime() + 20 * 60 * 1000), 300, 'メインステージ', 'break'),
+    createScheduleItem('evt_004', 'パネルセッション', 'コミュニティアップデート', new Date(base.getTime() + 25 * 60 * 1000), 1200, 'サブステージ', 'normal'),
+    createScheduleItem('evt_005', 'クロージング', 'まとめとご案内', new Date(base.getTime() + 45 * 60 * 1000), 300, 'メインステージ', 'normal'),
   ];
 };
 
@@ -169,13 +169,13 @@ function normalizeScheduleItem(item, index) {
 
   return {
     id: String(item?.id || `evt_${String(index + 1).padStart(3, '0')}`),
-    title: String(item?.title || `Event ${index + 1}`),
+    title: String(item?.title || `イベント ${index + 1}`),
     subTitle: String(item?.subTitle || ''),
     start,
     duration: Number.isFinite(numericDuration) && numericDuration > 0
       ? Math.round(numericDuration)
       : 300,
-    section: String(item?.section || 'Main Stage'),
+    section: String(item?.section || 'メインステージ'),
     type: String(item?.type || 'normal'),
   };
 }

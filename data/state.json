@@ -4,7 +4,7 @@
   "timers": [
     {
       "id": 1,
-      "label": "Main Timer",
+      "label": "進行タイマー",
       "mode": "down",
       "status": "stopped",
       "value": 180,
@@ -13,7 +13,7 @@
     },
     {
       "id": 2,
-      "label": "Stage Reset Buffer",
+      "label": "転換バッファ",
       "mode": "down",
       "status": "stopped",
       "value": 600,

@@ -14,11 +14,9 @@ const elements = {
   offsetSeconds: document.querySelector('#offset-seconds'),
   currentSchedule: document.querySelector('#current-schedule'),
   scheduleCount: document.querySelector('#schedule-count'),
+  currentEvent: document.querySelector('#current-event'),
   scheduleList: document.querySelector('#schedule-list'),
   timerList: document.querySelector('#timer-list'),
-  stateJson: document.querySelector('#state-json'),
-  scheduleJson: document.querySelector('#schedule-json'),
-  resetApp: document.querySelector('#reset-app'),
 };
 
 function formatClock(value) {
@@ -34,6 +32,18 @@ function formatSeconds(totalSeconds) {
   const minutes = String(Math.floor((abs % 3600) / 60)).padStart(2, '0');
   const seconds = String(abs % 60).padStart(2, '0');
   return `${sign}${hours}:${minutes}:${seconds}`;
+}
+
+function formatTimerStatus(status) {
+  if (status === 'running') {
+    return '動作中';
+  }
+
+  if (status === 'paused') {
+    return '一時停止';
+  }
+
+  return '停止中';
 }
 
 function getDisplayedNow() {
@@ -59,7 +69,48 @@ function renderOverview() {
   );
   elements.currentSchedule.textContent = currentItem
     ? `${currentItem.title} / ${currentItem.section}`
-    : 'None';
+    : '待機中';
+}
+
+function renderCurrentEvent() {
+  const currentState = state.payload.state;
+  const displayedNow = getDisplayedNow();
+  const currentItem = state.payload.schedule.find(
+    (item) => item.id === currentState?.currentScheduleId
+  );
+
+  if (!currentItem) {
+    elements.currentEvent.innerHTML = `
+      <p class="empty-state">進行中のイベントはありません。</p>
+    `;
+    return;
+  }
+
+  const start = new Date(currentItem.start).getTime();
+  const elapsed = Math.max(0, Math.floor((displayedNow - start) / 1000));
+  const remaining = Math.max(0, currentItem.duration - elapsed);
+  const progress = Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
+
+  elements.currentEvent.innerHTML = `
+    <div class="current-event-head">
+      <div>
+        <p class="current-event-section">${currentItem.section} / ${currentItem.type}</p>
+        <h3>${currentItem.title}</h3>
+        <p class="current-event-subtitle">${currentItem.subTitle || 'サブタイトルなし'}</p>
+      </div>
+      <div class="current-event-clock">
+        <span>開始 ${formatClock(start)}</span>
+        <strong>${formatSeconds(remaining)}</strong>
+      </div>
+    </div>
+    <div class="progress-meta">
+      <span>経過 ${formatSeconds(elapsed)}</span>
+      <span>進行率 ${Math.round(progress)}%</span>
+    </div>
+    <div class="progress-bar" aria-hidden="true">
+      <span style="width: ${progress}%"></span>
+    </div>
+  `;
 }
 
 function renderSchedule() {
@@ -73,21 +124,21 @@ function renderSchedule() {
       const isCurrent = currentState?.currentScheduleId === item.id;
       const delta = Math.floor((displayedNow - start) / 1000);
       const status = displayedNow < start
-        ? `Starts in ${formatSeconds(Math.abs(delta))}`
+        ? `開始まで ${formatSeconds(Math.abs(delta))}`
         : displayedNow < end
-          ? `Running +${formatSeconds(delta)}`
-          : `Ended ${formatSeconds(displayedNow - end)} ago`;
+          ? `進行中 +${formatSeconds(delta)}`
+          : `終了 ${formatSeconds(displayedNow - end)} 前`;
 
       return `
         <article class="schedule-item ${isCurrent ? 'is-current' : ''}">
           <div>
             <h3>${item.title}</h3>
-            <p>${item.subTitle || 'No subtitle'}</p>
+            <p>${item.subTitle || 'サブタイトルなし'}</p>
             <span class="schedule-meta">${item.section} / ${item.type}</span>
           </div>
           <div class="schedule-side">
             <strong>${formatClock(start)}</strong>
-            <span class="schedule-meta">${Math.round(item.duration / 60)} min</span>
+            <span class="schedule-meta">${Math.round(item.duration / 60)}分</span>
             <span class="schedule-meta">${status}</span>
             <button class="resync-button" data-resync="${item.id}">Resync</button>
           </div>
@@ -113,10 +164,10 @@ function renderTimers() {
   elements.timerList.innerHTML = timers
     .map((timer) => `
       <article class="timer-card">
-        <span class="timer-meta">${timer.mode.toUpperCase()} / ${timer.status}</span>
+        <span class="timer-meta">${timer.mode === 'up' ? 'カウントアップ' : 'カウントダウン'} / ${formatTimerStatus(timer.status)}</span>
         <h3>${timer.label}</h3>
         <p class="timer-value">${formatSeconds(getLiveTimerValue(timer))}</p>
-        <p>Initial: ${formatSeconds(timer.initialValue)}</p>
+        <p>初期値: ${formatSeconds(timer.initialValue)}</p>
         <div class="timer-actions">
           <button data-timer="${timer.id}" data-action="start">Start</button>
           <button data-timer="${timer.id}" data-action="pause">Pause</button>
@@ -127,11 +178,6 @@ function renderTimers() {
     .join('');
 }
 
-function renderJson() {
-  elements.stateJson.textContent = JSON.stringify(state.payload.state, null, 2);
-  elements.scheduleJson.textContent = JSON.stringify(state.payload.schedule, null, 2);
-}
-
 function renderClock() {
   elements.displayedTime.textContent = formatClock(getDisplayedNow());
 }
@@ -139,9 +185,9 @@ function renderClock() {
 function renderAll() {
   renderClock();
   renderOverview();
+  renderCurrentEvent();
   renderSchedule();
   renderTimers();
-  renderJson();
 }
 
 async function bootstrap() {
@@ -194,16 +240,13 @@ document.addEventListener('click', async (event) => {
   }
 });
 
-elements.resetApp.addEventListener('click', async () => {
-  await fetch('/api/reset', { method: 'POST' });
-});
-
 setInterval(() => {
   if (!state.payload.state) {
     return;
   }
 
   renderClock();
+  renderCurrentEvent();
   renderSchedule();
   renderTimers();
 }, 1000);

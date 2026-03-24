@@ -2,6 +2,7 @@ const editorState = {
   schedule: [],
   selectedId: null,
   dirty: false,
+  rawState: null,
 };
 
 const editorElements = {
@@ -16,6 +17,9 @@ const editorElements = {
   saveSchedule: document.querySelector('#save-schedule'),
   saveNote: document.querySelector('#save-note'),
   schedulePreview: document.querySelector('#schedule-preview'),
+  stateJson: document.querySelector('#state-json'),
+  scheduleJson: document.querySelector('#schedule-json'),
+  resetApp: document.querySelector('#reset-app'),
 };
 
 function toDatetimeLocal(value) {
@@ -39,10 +43,10 @@ function generateEntryId() {
 
 function markDirty(isDirty) {
   editorState.dirty = isDirty;
-  editorElements.editorStatus.textContent = isDirty ? 'Editing' : 'Ready';
+  editorElements.editorStatus.textContent = isDirty ? '編集中' : '準備完了';
   editorElements.saveNote.textContent = isDirty
-    ? 'Unsaved changes are pending.'
-    : 'Saved to schedule.json.';
+    ? '未保存の変更があります。'
+    : 'schedule.json に保存済みです。';
 }
 
 function getSelectedEntry() {
@@ -56,12 +60,12 @@ function renderList() {
       <article class="editor-card ${item.id === editorState.selectedId ? 'is-current' : ''}" data-entry-id="${item.id}">
         <div>
           <h3>${item.title}</h3>
-          <p>${item.subTitle || 'No subtitle'}</p>
+          <p>${item.subTitle || 'サブタイトルなし'}</p>
           <span class="schedule-meta">${item.section} / ${item.type}</span>
         </div>
         <div class="schedule-side">
           <strong>${new Date(item.start).toLocaleString('ja-JP', { hour12: false })}</strong>
-          <span class="schedule-meta">${item.duration}s</span>
+          <span class="schedule-meta">${item.duration}秒</span>
         </div>
       </article>
     `)
@@ -88,10 +92,16 @@ function renderPreview() {
   editorElements.schedulePreview.textContent = JSON.stringify(editorState.schedule, null, 2);
 }
 
+function renderRawJson() {
+  editorElements.stateJson.textContent = JSON.stringify(editorState.rawState, null, 2);
+  editorElements.scheduleJson.textContent = JSON.stringify(editorState.schedule, null, 2);
+}
+
 function renderAll() {
   renderList();
   renderForm();
   renderPreview();
+  renderRawJson();
 }
 
 function selectEntry(id) {
@@ -100,10 +110,15 @@ function selectEntry(id) {
 }
 
 async function loadSchedule() {
-  const response = await fetch('/api/schedule');
-  const data = await response.json();
-  editorState.schedule = data.schedule;
-  editorState.selectedId = data.schedule[0]?.id ?? null;
+  const [scheduleResponse, bootstrapResponse] = await Promise.all([
+    fetch('/api/schedule'),
+    fetch('/api/bootstrap'),
+  ]);
+  const scheduleData = await scheduleResponse.json();
+  const bootstrapData = await bootstrapResponse.json();
+  editorState.schedule = scheduleData.schedule;
+  editorState.rawState = bootstrapData.state;
+  editorState.selectedId = scheduleData.schedule[0]?.id ?? null;
   markDirty(false);
   renderAll();
 }
@@ -122,11 +137,11 @@ editorElements.addEntry.addEventListener('click', () => {
 
   const entry = {
     id: generateEntryId(),
-    title: 'New Event',
+    title: '新規イベント',
     subTitle: '',
     start: start.toISOString(),
     duration: 300,
-    section: 'Main Stage',
+    section: 'メインステージ',
     type: 'normal',
   };
 
@@ -149,7 +164,7 @@ editorElements.entryForm.addEventListener('submit', (event) => {
   );
 
   if (hasConflict) {
-    editorElements.editorStatus.textContent = 'Duplicate ID';
+    editorElements.editorStatus.textContent = 'ID が重複しています';
     return;
   }
 
@@ -174,7 +189,7 @@ editorElements.duplicateEntry.addEventListener('click', () => {
   const copy = {
     ...entry,
     id: generateEntryId(),
-    title: `${entry.title} Copy`,
+    title: `${entry.title} 複製`,
   };
 
   editorState.schedule.push(copy);
@@ -208,7 +223,7 @@ editorElements.saveSchedule.addEventListener('click', async () => {
   });
 
   if (!response.ok) {
-    editorElements.editorStatus.textContent = 'Save Failed';
+    editorElements.editorStatus.textContent = '保存に失敗しました';
     return;
   }
 
@@ -217,8 +232,12 @@ editorElements.saveSchedule.addEventListener('click', async () => {
   if (!editorState.schedule.some((item) => item.id === editorState.selectedId)) {
     editorState.selectedId = editorState.schedule[0]?.id ?? null;
   }
-  markDirty(false);
-  renderAll();
+  await loadSchedule();
+});
+
+editorElements.resetApp.addEventListener('click', async () => {
+  await fetch('/api/reset', { method: 'POST' });
+  await loadSchedule();
 });
 
 loadSchedule();

@@ -1,47 +1,47 @@
 [
   {
     "id": "evt_001",
-    "title": "Opening",
-    "subTitle": "MC Intro",
+    "title": "オープニング",
+    "subTitle": "MC オープン",
     "start": "2026-03-23T11:55:00+09:00",
     "duration": 300,
-    "section": "Main Stage",
+    "section": "メインステージ",
     "type": "normal"
   },
   {
     "id": "evt_002",
-    "title": "Guest Talk",
-    "subTitle": "Interview Segment",
+    "title": "ゲストトーク",
+    "subTitle": "インタビューセッション",
     "start": "2026-03-23T12:00:00+09:00",
     "duration": 900,
-    "section": "Main Stage",
+    "section": "メインステージ",
     "type": "normal"
   },
   {
     "id": "evt_003",
-    "title": "Break",
-    "subTitle": "Sponsor Roll",
+    "title": "休憩",
+    "subTitle": "スポンサー紹介",
     "start": "2026-03-23T12:15:00+09:00",
     "duration": 300,
-    "section": "Main Stage",
+    "section": "メインステージ",
     "type": "break"
   },
   {
     "id": "evt_004",
-    "title": "Panel Session",
-    "subTitle": "Community Update",
+    "title": "パネルセッション",
+    "subTitle": "コミュニティアップデート",
     "start": "2026-03-23T12:20:00+09:00",
     "duration": 1200,
-    "section": "Side Stage",
+    "section": "サブステージ",
     "type": "normal"
   },
   {
     "id": "evt_005",
-    "title": "Closing",
-    "subTitle": "Wrap-up",
+    "title": "クロージング",
+    "subTitle": "まとめとご案内",
     "start": "2026-03-23T12:40:00+09:00",
     "duration": 300,
-    "section": "Main Stage",
+    "section": "メインステージ",
     "type": "normal"
   }
 ]

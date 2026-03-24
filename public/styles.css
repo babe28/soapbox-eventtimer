@@ -35,6 +35,11 @@ body {
   padding: 24px 0 48px;
 }
 
+.app-shell-dashboard {
+  min-height: 100vh;
+  padding-bottom: 24px;
+}
+
 .hero {
   display: flex;
   justify-content: space-between;
@@ -44,6 +49,18 @@ body {
   border-radius: 28px;
   background: linear-gradient(145deg, rgba(255, 250, 242, 0.95), rgba(230, 240, 232, 0.86));
   box-shadow: var(--shadow);
+}
+
+.hero-compact {
+  padding: 18px 22px;
+  border-radius: 24px;
+}
+
+.hero-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
 }
 
 .eyebrow,
@@ -63,15 +80,15 @@ body {
 
 .hero-copy {
   max-width: 620px;
-  margin: 14px 0 0;
-  line-height: 1.7;
+  margin: 10px 0 0;
+  line-height: 1.5;
   color: var(--muted);
 }
 
 .top-nav {
   display: flex;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .nav-link {
@@ -107,7 +124,7 @@ body {
 }
 
 .status-chip {
-  padding: 16px 18px;
+  padding: 14px 16px;
 }
 
 .status-chip span,
@@ -122,8 +139,8 @@ body {
 .status-chip strong,
 .metric-card strong {
   display: block;
-  margin-top: 6px;
-  font-size: 1.3rem;
+  margin-top: 4px;
+  font-size: 1.2rem;
 }
 
 .dashboard-grid {
@@ -131,6 +148,10 @@ body {
   grid-template-columns: repeat(12, 1fr);
   gap: 20px;
   margin-top: 22px;
+}
+
+.dashboard-grid-compact {
+  grid-template-rows: auto minmax(0, 1fr) auto;
 }
 
 .panel {
@@ -148,12 +169,24 @@ body {
   grid-column: span 12;
 }
 
+.panel-compact {
+  padding: 18px 20px;
+}
+
+.panel-feature {
+  grid-column: span 7;
+}
+
+.panel-timeline {
+  grid-column: span 5;
+}
+
 .panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .ghost-button,
@@ -179,20 +212,20 @@ body {
 }
 
 .metric-card {
-  padding: 18px;
+  padding: 14px 16px;
 }
 
 .offset-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .offset-controls button,
 .timer-actions button,
 .resync-button {
-  padding: 10px 14px;
+  padding: 8px 12px;
   background: var(--panel-strong);
   color: white;
 }
@@ -210,7 +243,7 @@ body {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 16px;
-  padding: 18px;
+  padding: 14px 16px;
 }
 
 .schedule-item.is-current,
@@ -241,7 +274,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
 
 .resync-button {
@@ -253,19 +286,20 @@ body {
 }
 
 .timer-card {
-  padding: 18px;
+  padding: 16px;
 }
 
 .timer-value {
-  margin: 16px 0 8px;
-  font-size: 2.1rem;
+  margin: 12px 0 6px;
+  font-size: 1.9rem;
   font-weight: 700;
 }
 
 .timer-actions {
   display: flex;
   gap: 10px;
-  margin-top: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
 }
 
 .timer-actions button[data-action="pause"] {
@@ -278,6 +312,82 @@ body {
 
 .json-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.current-event-card {
+  display: grid;
+  gap: 14px;
+  min-height: 220px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(177, 77, 29, 0.12), transparent 45%),
+    linear-gradient(145deg, rgba(255, 250, 242, 0.96), rgba(230, 240, 232, 0.88));
+  box-shadow: 0 10px 30px rgba(18, 35, 31, 0.06);
+}
+
+.current-event-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 18px;
+  align-items: start;
+}
+
+.current-event-section,
+.current-event-subtitle,
+.progress-meta,
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+}
+
+.current-event-card h3 {
+  margin: 6px 0 8px;
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  line-height: 1.1;
+}
+
+.current-event-clock {
+  display: grid;
+  gap: 8px;
+  text-align: right;
+}
+
+.current-event-clock span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.current-event-clock strong {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.progress-bar {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(22, 48, 43, 0.1);
+}
+
+.progress-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #d58655);
+}
+
+.empty-state {
+  align-self: center;
+  font-size: 1rem;
 }
 
 .editor-form {
@@ -353,6 +463,7 @@ pre {
 @media (max-width: 960px) {
   .hero,
   .panel-head,
+  .current-event-head,
   .schedule-item,
   .editor-card {
     grid-template-columns: 1fr;
@@ -361,7 +472,9 @@ pre {
 
   .panel,
   .panel-primary,
-  .panel-secondary {
+  .panel-secondary,
+  .panel-feature,
+  .panel-timeline {
     grid-column: span 12;
   }
 
@@ -374,5 +487,25 @@ pre {
 
   .schedule-side {
     align-items: flex-start;
+  }
+
+  .current-event-clock {
+    text-align: left;
+  }
+}
+
+@media (min-width: 1280px) and (min-height: 900px) {
+  .app-shell-dashboard {
+    width: min(1480px, calc(100% - 32px));
+  }
+
+  .dashboard-grid-compact {
+    align-items: start;
+  }
+
+  .schedule-list {
+    max-height: 420px;
+    overflow: auto;
+    padding-right: 6px;
   }
 }
