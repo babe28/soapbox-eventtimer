@@ -95,6 +95,12 @@ body {
   color: var(--muted);
 }
 
+.hero-version {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
 .top-nav {
   display: flex;
   gap: 10px;
@@ -321,12 +327,18 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.offset-button-minus {
+.offset-controls .offset-button-minus {
   background: #2f5a8a;
 }
 
-.offset-button-plus {
+.offset-controls .offset-button-plus {
   background: var(--accent);
+}
+
+.offset-controls .offset-button-reset {
+  grid-column: 1 / -1;
+  background: rgba(22, 48, 43, 0.14);
+  color: var(--panel-strong);
 }
 
 .schedule-list,

@@ -14,10 +14,11 @@ const socket = io();
 const elements = {
   socketStatus: document.querySelector('#socket-status'),
   displayedTime: document.querySelector('#displayed-time'),
+  browserTime: document.querySelector('#browser-time'),
   offsetSeconds: document.querySelector('#offset-seconds'),
   offsetStatus: document.querySelector('#offset-status'),
   currentSchedule: document.querySelector('#current-schedule'),
-  scheduleCount: document.querySelector('#schedule-count'),
+  resetOffset: document.querySelector('#reset-offset'),
   currentEvent: document.querySelector('#current-event'),
   scheduleList: document.querySelector('#schedule-list'),
   timerList: document.querySelector('#timer-list'),
@@ -107,8 +108,6 @@ function renderOverview() {
 
   elements.offsetSeconds.textContent = `${currentState.globalOffsetSeconds}s`;
   elements.offsetStatus.textContent = formatOffsetLabel(currentState.globalOffsetSeconds);
-  elements.scheduleCount.textContent = String(state.payload.schedule.length);
-
   const activeIndex = getActiveIndex();
   const activeItem = activeIndex >= 0 ? state.payload.schedule[activeIndex] : null;
   elements.currentSchedule.textContent = activeItem
@@ -206,8 +205,8 @@ function renderCurrentEvent() {
     <div class="event-shift-actions">
       <button class="ghost-button" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>戻す</button>
       <button class="ghost-button" data-preview-action="next" ${nextItem ? '' : 'disabled'}>次へ</button>
-      <button class="force-button" data-schedule-action="previous" ${previousItem ? '' : 'disabled'}>戻す（強制）</button>
-      <button class="force-button" data-schedule-action="next" ${nextItem ? '' : 'disabled'}>次へ（強制）</button>
+      <button class="force-button" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>戻す（強制）</button>
+      <button class="force-button" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>次へ（強制）</button>
     </div>
   `;
 }
@@ -280,6 +279,7 @@ function renderTimers() {
 
 function renderClock() {
   elements.displayedTime.textContent = formatClock(getDisplayedNow());
+  elements.browserTime.textContent = formatClock(Date.now());
 }
 
 function renderAll() {
@@ -326,6 +326,25 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
+  if (event.target.closest('#reset-offset')) {
+    const currentOffset = state.payload.state?.globalOffsetSeconds ?? 0;
+    if (currentOffset === 0) {
+      return;
+    }
+
+    if (!window.confirm('グローバルオフセットを 0 秒に戻しますか？')) {
+      return;
+    }
+
+    state.ui.previewIndex = null;
+    await fetch('/api/offset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: -currentOffset }),
+    });
+    return;
+  }
+
   const timerButton = event.target.closest('[data-timer]');
   if (timerButton) {
     state.ui.previewIndex = null;
@@ -347,13 +366,13 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
-  const scheduleButton = event.target.closest('[data-schedule-action]');
-  if (scheduleButton) {
+  const forceButton = event.target.closest('[data-force-id]');
+  if (forceButton && forceButton.dataset.forceId) {
     state.ui.previewIndex = null;
-    await fetch('/api/schedule/shift', {
+    await fetch('/api/resync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: scheduleButton.dataset.scheduleAction }),
+      body: JSON.stringify({ id: forceButton.dataset.forceId }),
     });
     return;
   }
