@@ -13,9 +13,23 @@ const DATA_DIR = path.join(__dirname, 'data');
 const STATE_PATH = path.join(DATA_DIR, 'state.json');
 const SCHEDULE_PATH = path.join(DATA_DIR, 'schedule.json');
 
+function createDefaultDashboardConfig() {
+  return {
+    showPerEventSyncButtons: false,
+    eventTypeColors: {
+      normal: '#1d6b48',
+      break: '#b07300',
+      buffer: '#3d6ea8',
+      special: '#b14d1d',
+      race: '#7d245c',
+    },
+  };
+}
+
 const createDefaultState = () => ({
   globalOffsetSeconds: 0,
   isPaused: false,
+  dashboardConfig: createDefaultDashboardConfig(),
   timers: [
     {
       id: 1,
@@ -60,9 +74,10 @@ const createDefaultSchedule = () => {
   return [
     createScheduleItem('evt_001', 'オープニング', 'MC オープン', new Date(base), 300, 'メインステージ', 'normal'),
     createScheduleItem('evt_002', 'ゲストトーク', 'インタビューセッション', new Date(base.getTime() + 5 * 60 * 1000), 900, 'メインステージ', 'normal'),
-    createScheduleItem('evt_003', '休憩', 'スポンサー紹介', new Date(base.getTime() + 20 * 60 * 1000), 300, 'メインステージ', 'break'),
-    createScheduleItem('evt_004', 'パネルセッション', 'コミュニティアップデート', new Date(base.getTime() + 25 * 60 * 1000), 1200, 'サブステージ', 'normal'),
-    createScheduleItem('evt_005', 'クロージング', 'まとめとご案内', new Date(base.getTime() + 45 * 60 * 1000), 300, 'メインステージ', 'normal'),
+    createScheduleItem('evt_003', 'レース1', '予選ヒート', new Date(base.getTime() + 20 * 60 * 1000), 300, 'コースA', 'race'),
+    createScheduleItem('evt_004', '休憩', 'スポンサー紹介', new Date(base.getTime() + 25 * 60 * 1000), 300, 'メインステージ', 'break'),
+    createScheduleItem('evt_005', 'パネルセッション', 'コミュニティアップデート', new Date(base.getTime() + 30 * 60 * 1000), 900, 'サブステージ', 'special'),
+    createScheduleItem('evt_006', 'クロージング', 'まとめとご案内', new Date(base.getTime() + 45 * 60 * 1000), 300, 'メインステージ', 'normal'),
   ];
 };
 
@@ -90,6 +105,22 @@ async function loadJson(filePath) {
 
 async function saveJson(filePath, value) {
   await fs.writeFile(filePath, JSON.stringify(value, null, 2));
+}
+
+function normalizeDashboardConfig(source) {
+  const fallback = createDefaultDashboardConfig();
+  const colors = source?.eventTypeColors ?? {};
+
+  return {
+    showPerEventSyncButtons: Boolean(source?.showPerEventSyncButtons),
+    eventTypeColors: {
+      normal: String(colors.normal || fallback.eventTypeColors.normal),
+      break: String(colors.break || fallback.eventTypeColors.break),
+      buffer: String(colors.buffer || fallback.eventTypeColors.buffer),
+      special: String(colors.special || fallback.eventTypeColors.special),
+      race: String(colors.race || fallback.eventTypeColors.race),
+    },
+  };
 }
 
 function updateCurrentScheduleId(referenceTime = Date.now()) {
@@ -162,24 +193,21 @@ function normalizeScheduleItem(item, index) {
     ? new Date().toISOString()
     : parsedStart.toISOString();
   const numericDuration = Number(item?.duration ?? 300);
+  const validTypes = ['normal', 'break', 'buffer', 'special', 'race'];
 
   return {
     id: String(item?.id || `evt_${String(index + 1).padStart(3, '0')}`),
     title: String(item?.title || `イベント ${index + 1}`),
     subTitle: String(item?.subTitle || ''),
     start,
-    duration: Number.isFinite(numericDuration) && numericDuration > 0
-      ? Math.round(numericDuration)
-      : 300,
+    duration: Number.isFinite(numericDuration) && numericDuration > 0 ? Math.round(numericDuration) : 300,
     section: String(item?.section || 'メインステージ'),
-    type: String(item?.type || 'normal'),
+    type: validTypes.includes(item?.type) ? item.type : 'normal',
   };
 }
 
 function applyTimerAction(timer, action, value) {
-  if (!timer) {
-    return false;
-  }
+  if (!timer) return false;
 
   advanceTimers();
 
@@ -210,9 +238,7 @@ function getScheduleIndexByCurrent(referenceTime = Date.now()) {
 }
 
 function shiftSchedule(action, referenceTime = Date.now()) {
-  if (schedule.length === 0) {
-    return false;
-  }
+  if (schedule.length === 0) return false;
 
   const currentIndex = getScheduleIndexByCurrent(referenceTime);
   const displayedNow = referenceTime + state.globalOffsetSeconds * 1000;
@@ -228,10 +254,7 @@ function shiftSchedule(action, referenceTime = Date.now()) {
   if (action === 'next') {
     const baseIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
     const nextItem = schedule[Math.min(baseIndex, schedule.length - 1)];
-    if (!nextItem) {
-      return false;
-    }
-
+    if (!nextItem) return false;
     state.globalOffsetSeconds = Math.floor((new Date(nextItem.start).getTime() - referenceTime) / 1000);
     return true;
   }
@@ -239,15 +262,19 @@ function shiftSchedule(action, referenceTime = Date.now()) {
   if (action === 'previous') {
     const baseIndex = currentIndex > 0 ? currentIndex - 1 : 0;
     const previousItem = schedule[baseIndex];
-    if (!previousItem) {
-      return false;
-    }
-
+    if (!previousItem) return false;
     state.globalOffsetSeconds = Math.floor((new Date(previousItem.start).getTime() - referenceTime + 1000) / 1000);
     return true;
   }
 
   return false;
+}
+
+function resyncToSchedule(scheduleId, referenceTime = Date.now()) {
+  const item = schedule.find((entry) => entry.id === scheduleId);
+  if (!item) return false;
+  state.globalOffsetSeconds = Math.floor((new Date(item.start).getTime() - referenceTime + 1000) / 1000);
+  return true;
 }
 
 async function initializeData() {
@@ -269,15 +296,14 @@ function loadState(source) {
     globalOffsetSeconds: Number(source?.globalOffsetSeconds ?? fallback.globalOffsetSeconds),
     isPaused: Boolean(source?.isPaused ?? fallback.isPaused),
     currentScheduleId: source?.currentScheduleId ?? fallback.currentScheduleId,
+    dashboardConfig: normalizeDashboardConfig(source?.dashboardConfig),
     timers: loadedTimers.map((timer, index) => {
       const fallbackTimer = fallback.timers[index] ?? fallback.timers[0];
       return {
         id: timer.id ?? fallbackTimer.id,
         label: timer.label ?? fallbackTimer.label,
         mode: timer.mode === 'up' ? 'up' : 'down',
-        status: ['running', 'paused', 'stopped'].includes(timer.status)
-          ? timer.status
-          : 'stopped',
+        status: ['running', 'paused', 'stopped'].includes(timer.status) ? timer.status : 'stopped',
         value: Number(timer.value ?? fallbackTimer.value),
         initialValue: Number(timer.initialValue ?? fallbackTimer.initialValue),
         lastUpdate: Number(timer.lastUpdate ?? Date.now()),
@@ -296,19 +322,6 @@ function loadSchedule(source) {
 
 io.on('connection', (socket) => {
   socket.emit('sync_state', getPayload());
-
-  socket.on('update_offset', async (deltaSeconds) => {
-    state.globalOffsetSeconds += Number(deltaSeconds || 0);
-    await syncAll();
-  });
-
-  socket.on('control_timer', async ({ id, action, value }) => {
-    const timer = findTimer(id);
-    if (!applyTimerAction(timer, action, value)) {
-      return;
-    }
-    await syncAll();
-  });
 });
 
 app.get('/api/bootstrap', (_req, res) => {
@@ -345,9 +358,7 @@ app.put('/api/timers', async (req, res) => {
 
   state.timers = state.timers.map((timer) => {
     const nextInitialValue = updates.get(String(timer.id));
-    if (!nextInitialValue) {
-      return timer;
-    }
+    if (!nextInitialValue) return timer;
 
     return {
       ...timer,
@@ -362,8 +373,24 @@ app.put('/api/timers', async (req, res) => {
   res.json({ success: true, state: clone(state) });
 });
 
+app.put('/api/dashboard-config', async (req, res) => {
+  state.dashboardConfig = normalizeDashboardConfig(req.body);
+  await syncAll();
+  res.json({ success: true, dashboardConfig: clone(state.dashboardConfig) });
+});
+
 app.post('/api/offset', async (req, res) => {
   state.globalOffsetSeconds += Number(req.body?.value || 0);
+  await syncAll();
+  res.json({ success: true, state: getPayload().state });
+});
+
+app.post('/api/resync', async (req, res) => {
+  if (!resyncToSchedule(req.body?.id)) {
+    res.status(404).json({ success: false, message: 'Schedule item not found.' });
+    return;
+  }
+
   await syncAll();
   res.json({ success: true, state: getPayload().state });
 });

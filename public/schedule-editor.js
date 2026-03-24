@@ -1,3 +1,5 @@
+const DASHBOARD_TYPES = ['normal', 'break', 'buffer', 'special', 'race'];
+
 const editorState = {
   schedule: [],
   selectedId: null,
@@ -11,12 +13,15 @@ const editorElements = {
   editorList: document.querySelector('#editor-list'),
   entryForm: document.querySelector('#entry-form'),
   timerForm: document.querySelector('#timer-form'),
+  dashboardForm: document.querySelector('#dashboard-form'),
+  eventTypeColors: document.querySelector('#event-type-colors'),
   addEntry: document.querySelector('#add-entry'),
   duplicateEntry: document.querySelector('#duplicate-entry'),
   deleteEntry: document.querySelector('#delete-entry'),
   sortEntries: document.querySelector('#sort-entries'),
   saveSchedule: document.querySelector('#save-schedule'),
   saveTimers: document.querySelector('#save-timers'),
+  saveDashboard: document.querySelector('#save-dashboard'),
   saveNote: document.querySelector('#save-note'),
   schedulePreview: document.querySelector('#schedule-preview'),
   stateJson: document.querySelector('#state-json'),
@@ -57,6 +62,13 @@ function setStatus(text) {
 
 function getSelectedEntry() {
   return editorState.schedule.find((item) => item.id === editorState.selectedId) || null;
+}
+
+function getDashboardConfig() {
+  return editorState.rawState?.dashboardConfig ?? {
+    showPerEventSyncButtons: false,
+    eventTypeColors: {},
+  };
 }
 
 function renderList() {
@@ -112,6 +124,22 @@ function renderTimerForm() {
     .join('');
 }
 
+function renderDashboardForm() {
+  const dashboardConfig = getDashboardConfig();
+  editorElements.dashboardForm.elements.showPerEventSyncButtons.checked = Boolean(
+    dashboardConfig.showPerEventSyncButtons
+  );
+
+  editorElements.eventTypeColors.innerHTML = DASHBOARD_TYPES
+    .map((type) => `
+      <label class="color-config-card">
+        <span>${type}</span>
+        <input type="color" name="color-${type}" value="${dashboardConfig.eventTypeColors[type] || '#1d6b48'}" />
+      </label>
+    `)
+    .join('');
+}
+
 function renderPreview() {
   editorElements.schedulePreview.textContent = JSON.stringify(editorState.schedule, null, 2);
 }
@@ -125,6 +153,7 @@ function renderAll() {
   renderList();
   renderForm();
   renderTimerForm();
+  renderDashboardForm();
   renderPreview();
   renderRawJson();
 }
@@ -178,9 +207,7 @@ editorElements.addEntry.addEventListener('click', () => {
 editorElements.entryForm.addEventListener('submit', (event) => {
   event.preventDefault();
   const entry = getSelectedEntry();
-  if (!entry) {
-    return;
-  }
+  if (!entry) return;
 
   const form = editorElements.entryForm.elements;
   const nextId = form.id.value.trim();
@@ -207,9 +234,7 @@ editorElements.entryForm.addEventListener('submit', (event) => {
 
 editorElements.duplicateEntry.addEventListener('click', () => {
   const entry = getSelectedEntry();
-  if (!entry) {
-    return;
-  }
+  if (!entry) return;
 
   const copy = {
     ...entry,
@@ -224,9 +249,7 @@ editorElements.duplicateEntry.addEventListener('click', () => {
 
 editorElements.deleteEntry.addEventListener('click', () => {
   const entry = getSelectedEntry();
-  if (!entry) {
-    return;
-  }
+  if (!entry) return;
 
   editorState.schedule = editorState.schedule.filter((item) => item.id !== entry.id);
   editorState.selectedId = editorState.schedule[0]?.id ?? null;
@@ -273,6 +296,32 @@ editorElements.saveTimers.addEventListener('click', async () => {
   }
 
   setStatus('タイマー設定を保存しました');
+  await loadSchedule();
+});
+
+editorElements.saveDashboard.addEventListener('click', async () => {
+  const eventTypeColors = Object.fromEntries(
+    DASHBOARD_TYPES.map((type) => [
+      type,
+      editorElements.dashboardForm.elements[`color-${type}`].value,
+    ])
+  );
+
+  const response = await fetch('/api/dashboard-config', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      showPerEventSyncButtons: editorElements.dashboardForm.elements.showPerEventSyncButtons.checked,
+      eventTypeColors,
+    }),
+  });
+
+  if (!response.ok) {
+    setStatus('ダッシュボード設定の保存に失敗しました');
+    return;
+  }
+
+  setStatus('ダッシュボード設定を保存しました');
   await loadSchedule();
 });
 

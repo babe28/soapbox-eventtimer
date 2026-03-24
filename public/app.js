@@ -29,6 +29,19 @@ const elements = {
   finalEndLabel: document.querySelector('#final-end-label'),
 };
 
+function getDashboardConfig() {
+  return state.payload.state?.dashboardConfig ?? {
+    showPerEventSyncButtons: false,
+    eventTypeColors: {
+      normal: '#1d6b48',
+      break: '#b07300',
+      buffer: '#3d6ea8',
+      special: '#b14d1d',
+      race: '#7d245c',
+    },
+  };
+}
+
 function formatClock(value) {
   return new Date(value).toLocaleTimeString('ja-JP', { hour12: false });
 }
@@ -50,7 +63,6 @@ function formatTimerStatus(status) {
 
 function formatOffsetLabel(seconds) {
   if (seconds === 0) return '定刻';
-
   const absSeconds = Math.abs(seconds);
   const minutes = Math.floor(absSeconds / 60);
   const remainSeconds = absSeconds % 60;
@@ -73,7 +85,6 @@ function getDisplayedNow() {
 
 function getScheduleBounds() {
   if (state.payload.schedule.length === 0) return null;
-
   const firstStart = new Date(state.payload.schedule[0].start).getTime();
   const lastItem = state.payload.schedule[state.payload.schedule.length - 1];
   const lastEnd = new Date(lastItem.start).getTime() + lastItem.duration * 1000;
@@ -86,10 +97,7 @@ function getCurrentIndex() {
 }
 
 function getActiveIndex() {
-  if (state.ui.previewIndex == null) {
-    return getCurrentIndex();
-  }
-
+  if (state.ui.previewIndex == null) return getCurrentIndex();
   return Math.max(0, Math.min(state.ui.previewIndex, state.payload.schedule.length - 1));
 }
 
@@ -133,7 +141,6 @@ function renderHeaderStats() {
   elements.eventProgressValue.textContent = `${Math.round(consumedPercent)}%`;
   elements.eventProgressLabel.textContent = `${completedCount} / ${state.payload.schedule.length}`;
   setDonutValue(elements.eventProgressDonut, consumedPercent);
-
   elements.finalEndValue.textContent = formatSeconds(remainingSeconds);
   elements.finalEndLabel.textContent = formatClock(bounds.lastEnd);
   setDonutValue(elements.finalEndDonut, 100 - consumedPercent);
@@ -165,9 +172,7 @@ function renderCurrentEvent() {
   const isPreviewing = state.ui.previewIndex != null && activeIndex !== actualCurrentIndex;
   const elapsed = isPreviewing ? 0 : Math.max(0, Math.floor((displayedNow - start) / 1000));
   const remaining = isPreviewing ? currentItem.duration : Math.max(0, Math.floor((end - displayedNow) / 1000));
-  const progress = isPreviewing
-    ? 0
-    : Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
+  const progress = isPreviewing ? 0 : Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
   const previousItem = activeIndex > 0 ? state.payload.schedule[activeIndex - 1] : null;
   const nextItem = state.payload.schedule[activeIndex + 1] ?? null;
   const nextCountdown = nextItem
@@ -210,6 +215,7 @@ function renderCurrentEvent() {
 function renderSchedule() {
   const displayedNow = getDisplayedNow();
   const activeIndex = getActiveIndex();
+  const dashboardConfig = getDashboardConfig();
 
   elements.scheduleList.innerHTML = state.payload.schedule
     .map((item, index) => {
@@ -223,18 +229,23 @@ function renderSchedule() {
         : isDone
           ? '終了済み'
           : '進行中';
+      const typeColor = dashboardConfig.eventTypeColors[item.type] || dashboardConfig.eventTypeColors.normal;
 
       return `
-        <article class="schedule-item ${isCurrent ? 'is-current' : ''}">
+        <article class="schedule-item ${isCurrent ? 'is-current' : ''}" style="--type-color: ${typeColor}">
           <div class="schedule-main">
-            <h3>${item.title}</h3>
+            <div class="schedule-title-row">
+              <span class="schedule-type-accent" aria-hidden="true"></span>
+              <h3>${item.title}</h3>
+            </div>
             <p class="schedule-subtitle">${item.subTitle || 'サブタイトルなし'}</p>
-            <span class="schedule-meta">${item.section}</span>
+            <span class="schedule-meta">${item.section} / ${item.type}</span>
           </div>
           <div class="schedule-side">
             <strong>${formatClock(start)}-${formatClock(end)}</strong>
             <span class="schedule-meta">(${formatSeconds(item.duration)})</span>
             <span class="schedule-badge ${isCurrent ? 'is-live' : isDone ? 'is-done' : 'is-upcoming'}">${status}</span>
+            ${dashboardConfig.showPerEventSyncButtons ? `<button class="force-button schedule-sync-button" data-resync="${item.id}">ここに同期</button>` : ''}
           </div>
         </article>
       `;
@@ -244,11 +255,8 @@ function renderSchedule() {
 
 function getLiveTimerValue(timer) {
   if (timer.status !== 'running') return timer.value;
-
   const elapsed = Math.max(0, Math.floor((Date.now() - timer.lastUpdate) / 1000));
-  return timer.mode === 'up'
-    ? timer.value + elapsed
-    : Math.max(0, timer.value - elapsed);
+  return timer.mode === 'up' ? timer.value + elapsed : Math.max(0, timer.value - elapsed);
 }
 
 function renderTimers() {
@@ -346,6 +354,17 @@ document.addEventListener('click', async (event) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: scheduleButton.dataset.scheduleAction }),
+    });
+    return;
+  }
+
+  const resyncButton = event.target.closest('[data-resync]');
+  if (resyncButton) {
+    state.ui.previewIndex = null;
+    await fetch('/api/resync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: resyncButton.dataset.resync }),
     });
   }
 });

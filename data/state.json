@@ -1,6 +1,16 @@
 {
   "globalOffsetSeconds": 0,
   "isPaused": false,
+  "dashboardConfig": {
+    "showPerEventSyncButtons": false,
+    "eventTypeColors": {
+      "normal": "#1d6b48",
+      "break": "#b07300",
+      "buffer": "#3d6ea8",
+      "special": "#b14d1d",
+      "race": "#7d245c"
+    }
+  },
   "timers": [
     {
       "id": 1,

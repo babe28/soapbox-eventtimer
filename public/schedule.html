@@ -14,7 +14,7 @@
             <p class="eyebrow">Soapbox Event Timer</p>
             <h1>設定画面</h1>
             <p class="hero-copy">
-              スケジュール編集、独立タイマー初期値の調整、JSON確認、モックデータ初期化を行う画面です。
+              スケジュール編集、独立タイマー初期値、ダッシュボード見た目、JSON確認をまとめて調整する画面です。
             </p>
           </div>
           <div class="top-nav">
@@ -85,6 +85,7 @@
                 <option value="break">break</option>
                 <option value="buffer">buffer</option>
                 <option value="special">special</option>
+                <option value="race">race</option>
               </select>
             </label>
             <div class="editor-actions">
@@ -104,6 +105,23 @@
             <button id="save-timers" type="button">タイマー設定を保存</button>
           </div>
           <form id="timer-form" class="timer-config-list"></form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Dashboard</p>
+              <h2>ダッシュボード設定</h2>
+            </div>
+            <button id="save-dashboard" type="button">見た目設定を保存</button>
+          </div>
+          <form id="dashboard-form" class="dashboard-config-form">
+            <label class="checkbox-row">
+              <input name="showPerEventSyncButtons" type="checkbox" />
+              <span>各イベントの強制同期ボタンを表示する</span>
+            </label>
+            <div id="event-type-colors" class="color-config-list"></div>
+          </form>
         </section>
 
         <section class="panel panel-secondary">

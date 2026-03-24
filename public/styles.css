@@ -363,6 +363,20 @@ body {
   min-width: 0;
 }
 
+.schedule-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.schedule-type-accent {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--type-color, var(--accent));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--type-color, var(--accent)) 18%, transparent);
+}
+
 .schedule-subtitle {
   font-size: 0.86rem;
 }
@@ -539,6 +553,10 @@ body {
   cursor: not-allowed;
 }
 
+.schedule-sync-button {
+  width: 100%;
+}
+
 .empty-state {
   align-self: center;
   font-size: 1rem;
@@ -576,6 +594,47 @@ body {
   gap: 16px;
   align-items: end;
   padding: 16px;
+}
+
+.dashboard-config-form {
+  display: grid;
+  gap: 16px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.color-config-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.color-config-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel);
+  color: var(--muted);
+}
+
+.color-config-card span {
+  font-size: 0.9rem;
+}
+
+.color-config-card input {
+  width: 100%;
+  min-height: 42px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
 }
 
 .editor-actions,

@@ -19,27 +19,36 @@
   },
   {
     "id": "evt_003",
+    "title": "レース1",
+    "subTitle": "予選ヒート",
+    "start": "2026-03-23T12:15:00+09:00",
+    "duration": 300,
+    "section": "コースA",
+    "type": "race"
+  },
+  {
+    "id": "evt_004",
     "title": "休憩",
     "subTitle": "スポンサー紹介",
-    "start": "2026-03-23T12:15:00+09:00",
+    "start": "2026-03-23T12:20:00+09:00",
     "duration": 300,
     "section": "メインステージ",
     "type": "break"
   },
   {
-    "id": "evt_004",
+    "id": "evt_005",
     "title": "パネルセッション",
     "subTitle": "コミュニティアップデート",
-    "start": "2026-03-23T12:20:00+09:00",
+    "start": "2026-03-23T12:25:00+09:00",
     "duration": 1200,
     "section": "サブステージ",
-    "type": "normal"
+    "type": "special"
   },
   {
-    "id": "evt_005",
+    "id": "evt_006",
     "title": "クロージング",
     "subTitle": "まとめとご案内",
-    "start": "2026-03-23T12:40:00+09:00",
+    "start": "2026-03-23T12:45:00+09:00",
     "duration": 300,
     "section": "メインステージ",
     "type": "normal"
