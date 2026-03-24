@@ -8,34 +8,34 @@
   </head>
   <body>
     <div class="app-shell app-shell-dashboard">
-      <header class="hero hero-compact">
+      <header class="hero hero-compact hero-dashboard">
         <div class="hero-main">
-          <div>
-            <p class="eyebrow">Soapbox Event Timer</p>
-            <h1>イベントダッシュボード</h1>
-            <p class="hero-copy">
-              本番表示と進行操作を 1 画面で確認するためのダッシュボードです。
-            </p>
-          </div>
-          <div class="top-nav">
+          <p class="eyebrow">Soapbox Event Timer</p>
+          <h1>イベントダッシュボード</h1>
+          <p class="hero-copy">
+            進行中の予定、全体オフセット、俯瞰スケジュールをまとめて確認するメイン画面です。
+          </p>
+        </div>
+        <div class="hero-tools">
+          <div class="top-nav top-nav-header">
             <a class="nav-link current" href="/">Dashboard</a>
             <a class="nav-link" href="/schedule.html">Settings</a>
           </div>
-        </div>
-        <div class="hero-status">
-          <div class="status-chip">
-            <span>Socket</span>
-            <strong id="socket-status">Connecting</strong>
-          </div>
-          <div class="status-chip">
-            <span>表示時刻</span>
-            <strong id="displayed-time">--:--:--</strong>
+          <div class="hero-status">
+            <div class="status-chip">
+              <span>Socket</span>
+              <strong id="socket-status">Connecting</strong>
+            </div>
+            <div class="status-chip">
+              <span>表示時刻</span>
+              <strong id="displayed-time">--:--:--</strong>
+            </div>
           </div>
         </div>
       </header>
 
-      <main class="dashboard-grid dashboard-grid-compact">
-        <section class="panel panel-primary panel-compact">
+      <main class="dashboard-stage">
+        <section class="panel panel-control panel-compact">
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Overview</p>
@@ -90,7 +90,7 @@
           <div id="schedule-list" class="schedule-list"></div>
         </section>
 
-        <section class="panel panel-secondary panel-compact">
+        <section class="panel panel-timers panel-compact">
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Timers</p>

@@ -78,10 +78,18 @@ function renderCurrentEvent() {
   const currentItem = state.payload.schedule.find(
     (item) => item.id === currentState?.currentScheduleId
   );
+  const nextItem = state.payload.schedule.find((item) => new Date(item.start).getTime() > displayedNow);
 
   if (!currentItem) {
     elements.currentEvent.innerHTML = `
-      <p class="empty-state">進行中のイベントはありません。</p>
+      <div class="current-event-fallback">
+        <p class="empty-state">進行中のイベントはありません。</p>
+        <div class="next-event-card">
+          <span>次の予定</span>
+          <strong>${nextItem ? nextItem.title : '予定なし'}</strong>
+          <p>${nextItem ? `開始まで ${formatSeconds(Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000))}` : 'スケジュールに次の予定がありません。'}</p>
+        </div>
+      </div>
     `;
     return;
   }
@@ -90,6 +98,11 @@ function renderCurrentEvent() {
   const elapsed = Math.max(0, Math.floor((displayedNow - start) / 1000));
   const remaining = Math.max(0, currentItem.duration - elapsed);
   const progress = Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
+  const currentIndex = state.payload.schedule.findIndex((item) => item.id === currentItem.id);
+  const followingItem = state.payload.schedule[currentIndex + 1] ?? null;
+  const nextCountdown = followingItem
+    ? Math.max(0, Math.floor((new Date(followingItem.start).getTime() - displayedNow) / 1000))
+    : null;
 
   elements.currentEvent.innerHTML = `
     <div class="current-event-head">
@@ -109,6 +122,11 @@ function renderCurrentEvent() {
     </div>
     <div class="progress-bar" aria-hidden="true">
       <span style="width: ${progress}%"></span>
+    </div>
+    <div class="next-event-card">
+      <span>次の予定</span>
+      <strong>${followingItem ? followingItem.title : '次の予定なし'}</strong>
+      <p>${followingItem ? `${formatClock(followingItem.start)} 開始 / あと ${formatSeconds(nextCountdown)}` : 'この後の予定は登録されていません。'}</p>
     </div>
   `;
 }
