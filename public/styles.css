@@ -317,6 +317,18 @@ body {
   color: white;
 }
 
+.offset-controls {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.offset-button-minus {
+  background: #2f5a8a;
+}
+
+.offset-button-plus {
+  background: var(--accent);
+}
+
 .schedule-list,
 .timer-list,
 .json-grid,
@@ -554,7 +566,11 @@ body {
 }
 
 .schedule-sync-button {
-  width: 100%;
+  width: auto;
+  align-self: flex-end;
+  padding: 5px 9px;
+  font-size: 0.74rem;
+  line-height: 1.1;
 }
 
 .empty-state {

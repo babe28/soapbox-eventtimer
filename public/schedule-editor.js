@@ -24,9 +24,11 @@ const editorElements = {
   saveDashboard: document.querySelector('#save-dashboard'),
   saveNote: document.querySelector('#save-note'),
   schedulePreview: document.querySelector('#schedule-preview'),
+  progressLog: document.querySelector('#progress-log'),
   stateJson: document.querySelector('#state-json'),
   scheduleJson: document.querySelector('#schedule-json'),
   resetApp: document.querySelector('#reset-app'),
+  clearProgressLog: document.querySelector('#clear-progress-log'),
 };
 
 function toDatetimeLocal(value) {
@@ -149,12 +151,30 @@ function renderRawJson() {
   editorElements.scheduleJson.textContent = JSON.stringify(editorState.schedule, null, 2);
 }
 
+function renderProgressLog() {
+  const logs = editorState.rawState?.progressLog ?? [];
+  if (logs.length === 0) {
+    editorElements.progressLog.textContent = 'ログはまだありません。';
+    return;
+  }
+
+  editorElements.progressLog.textContent = logs
+    .slice()
+    .reverse()
+    .map((entry) => {
+      const time = new Date(entry.timestamp).toLocaleString('ja-JP', { hour12: false });
+      return `${time} | ${entry.action} | ${entry.detail} | ${entry.beforeOffsetSeconds}s -> ${entry.afterOffsetSeconds}s`;
+    })
+    .join('\n');
+}
+
 function renderAll() {
   renderList();
   renderForm();
   renderTimerForm();
   renderDashboardForm();
   renderPreview();
+  renderProgressLog();
   renderRawJson();
 }
 
@@ -171,7 +191,10 @@ async function loadSchedule() {
   const scheduleData = await scheduleResponse.json();
   const bootstrapData = await bootstrapResponse.json();
   editorState.schedule = scheduleData.schedule;
-  editorState.rawState = bootstrapData.state;
+  editorState.rawState = {
+    ...bootstrapData.state,
+    progressLog: bootstrapData.progressLog ?? [],
+  };
   editorState.selectedId = scheduleData.schedule[0]?.id ?? null;
   markDirty(false);
   renderAll();
@@ -327,6 +350,12 @@ editorElements.saveDashboard.addEventListener('click', async () => {
 
 editorElements.resetApp.addEventListener('click', async () => {
   await fetch('/api/reset', { method: 'POST' });
+  await loadSchedule();
+});
+
+editorElements.clearProgressLog.addEventListener('click', async () => {
+  await fetch('/api/progress-log', { method: 'DELETE' });
+  setStatus('進行ログをクリアしました');
   await loadSchedule();
 });
 

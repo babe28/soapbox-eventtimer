@@ -12,6 +12,7 @@ const PORT = 3333;
 const DATA_DIR = path.join(__dirname, 'data');
 const STATE_PATH = path.join(DATA_DIR, 'state.json');
 const SCHEDULE_PATH = path.join(DATA_DIR, 'schedule.json');
+const LOG_PATH = path.join(DATA_DIR, 'progress-log.json');
 
 function createDefaultDashboardConfig() {
   return {
@@ -83,6 +84,7 @@ const createDefaultSchedule = () => {
 
 let state = createDefaultState();
 let schedule = createDefaultSchedule();
+let progressLog = [];
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -165,6 +167,7 @@ function getPayload(referenceTime = Date.now()) {
   return {
     state: clone(state),
     schedule: clone(schedule),
+    progressLog: clone(progressLog),
     serverTime: referenceTime,
   };
 }
@@ -177,10 +180,28 @@ async function persistSchedule() {
   await saveJson(SCHEDULE_PATH, schedule);
 }
 
+async function persistProgressLog() {
+  await saveJson(LOG_PATH, progressLog);
+}
+
 async function syncAll() {
   const payload = getPayload();
   await persistState();
   io.emit('sync_state', payload);
+}
+
+async function appendProgressLog(entry) {
+  progressLog.push({
+    id: `log_${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    ...entry,
+  });
+
+  if (progressLog.length > 500) {
+    progressLog = progressLog.slice(-500);
+  }
+
+  await persistProgressLog();
 }
 
 function findTimer(timerId) {
@@ -280,12 +301,15 @@ function resyncToSchedule(scheduleId, referenceTime = Date.now()) {
 async function initializeData() {
   await ensureJsonFile(STATE_PATH, createDefaultState);
   await ensureJsonFile(SCHEDULE_PATH, createDefaultSchedule);
+  await ensureJsonFile(LOG_PATH, () => []);
 
   state = loadState(await loadJson(STATE_PATH));
   schedule = loadSchedule(await loadJson(SCHEDULE_PATH));
+  progressLog = loadProgressLog(await loadJson(LOG_PATH));
   updateCurrentScheduleId();
   await persistState();
   await persistSchedule();
+  await persistProgressLog();
 }
 
 function loadState(source) {
@@ -318,6 +342,21 @@ function loadSchedule(source) {
   }
 
   return source.map((item, index) => normalizeScheduleItem(item, index));
+}
+
+function loadProgressLog(source) {
+  if (!Array.isArray(source)) {
+    return [];
+  }
+
+  return source.map((entry, index) => ({
+    id: String(entry?.id || `log_${index + 1}`),
+    timestamp: String(entry?.timestamp || new Date().toISOString()),
+    action: String(entry?.action || 'unknown'),
+    detail: String(entry?.detail || ''),
+    beforeOffsetSeconds: Number(entry?.beforeOffsetSeconds ?? 0),
+    afterOffsetSeconds: Number(entry?.afterOffsetSeconds ?? 0),
+  }));
 }
 
 io.on('connection', (socket) => {
@@ -380,29 +419,58 @@ app.put('/api/dashboard-config', async (req, res) => {
 });
 
 app.post('/api/offset', async (req, res) => {
+  const beforeOffsetSeconds = state.globalOffsetSeconds;
   state.globalOffsetSeconds += Number(req.body?.value || 0);
+  await appendProgressLog({
+    action: 'offset',
+    detail: `手動オフセット ${Number(req.body?.value || 0)}秒`,
+    beforeOffsetSeconds,
+    afterOffsetSeconds: state.globalOffsetSeconds,
+  });
   await syncAll();
   res.json({ success: true, state: getPayload().state });
 });
 
 app.post('/api/resync', async (req, res) => {
+  const beforeOffsetSeconds = state.globalOffsetSeconds;
   if (!resyncToSchedule(req.body?.id)) {
     res.status(404).json({ success: false, message: 'Schedule item not found.' });
     return;
   }
 
+  const targetItem = schedule.find((entry) => entry.id === req.body?.id);
+  await appendProgressLog({
+    action: 'resync',
+    detail: `イベント同期 ${targetItem ? targetItem.title : req.body?.id}`,
+    beforeOffsetSeconds,
+    afterOffsetSeconds: state.globalOffsetSeconds,
+  });
   await syncAll();
   res.json({ success: true, state: getPayload().state });
 });
 
 app.post('/api/schedule/shift', async (req, res) => {
+  const beforeOffsetSeconds = state.globalOffsetSeconds;
   if (!shiftSchedule(req.body?.action)) {
     res.status(400).json({ success: false, message: 'Invalid schedule shift action.' });
     return;
   }
 
+  await appendProgressLog({
+    action: 'shift',
+    detail: `強制移動 ${String(req.body?.action || '')}`,
+    beforeOffsetSeconds,
+    afterOffsetSeconds: state.globalOffsetSeconds,
+  });
   await syncAll();
   res.json({ success: true, state: getPayload().state });
+});
+
+app.delete('/api/progress-log', async (_req, res) => {
+  progressLog = [];
+  await persistProgressLog();
+  io.emit('sync_state', getPayload());
+  res.json({ success: true });
 });
 
 app.post('/api/timer/:id/:action', async (req, res) => {
@@ -420,8 +488,10 @@ app.post('/api/timer/:id/:action', async (req, res) => {
 app.post('/api/reset', async (_req, res) => {
   state = createDefaultState();
   schedule = createDefaultSchedule();
+  progressLog = [];
   await persistState();
   await persistSchedule();
+  await persistProgressLog();
   io.emit('sync_state', getPayload());
   res.json({ success: true });
 });
