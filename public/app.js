@@ -17,6 +17,7 @@ const elements = {
   browserTime: document.querySelector('#browser-time'),
   offsetSeconds: document.querySelector('#offset-seconds'),
   offsetStatus: document.querySelector('#offset-status'),
+  progressDiff: document.querySelector('#progress-diff'),
   currentSchedule: document.querySelector('#current-schedule'),
   resetOffset: document.querySelector('#reset-offset'),
   currentEvent: document.querySelector('#current-event'),
@@ -93,6 +94,17 @@ function getScheduleBounds() {
 }
 
 function getCurrentIndex() {
+  const displayedNow = getDisplayedNow();
+  const liveIndex = state.payload.schedule.findIndex((item) => {
+    const start = new Date(item.start).getTime();
+    const end = start + item.duration * 1000;
+    return displayedNow >= start && displayedNow < end;
+  });
+
+  if (liveIndex >= 0) {
+    return liveIndex;
+  }
+
   const currentId = state.payload.state?.currentScheduleId;
   return state.payload.schedule.findIndex((item) => item.id === currentId);
 }
@@ -107,7 +119,9 @@ function renderOverview() {
   if (!currentState) return;
 
   elements.offsetSeconds.textContent = `${currentState.globalOffsetSeconds}s`;
-  elements.offsetStatus.textContent = formatOffsetLabel(currentState.globalOffsetSeconds);
+  const offsetLabel = formatOffsetLabel(currentState.globalOffsetSeconds);
+  elements.offsetStatus.textContent = offsetLabel;
+  elements.progressDiff.textContent = offsetLabel;
   const activeIndex = getActiveIndex();
   const activeItem = activeIndex >= 0 ? state.payload.schedule[activeIndex] : null;
   elements.currentSchedule.textContent = activeItem
