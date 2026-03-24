@@ -4,6 +4,9 @@ const state = {
     schedule: [],
     serverTime: Date.now(),
   },
+  ui: {
+    previewIndex: null,
+  },
 };
 
 const socket = io();
@@ -47,6 +50,7 @@ function formatTimerStatus(status) {
 
 function formatOffsetLabel(seconds) {
   if (seconds === 0) return '定刻';
+
   const absSeconds = Math.abs(seconds);
   const minutes = Math.floor(absSeconds / 60);
   const remainSeconds = absSeconds % 60;
@@ -69,6 +73,7 @@ function getDisplayedNow() {
 
 function getScheduleBounds() {
   if (state.payload.schedule.length === 0) return null;
+
   const firstStart = new Date(state.payload.schedule[0].start).getTime();
   const lastItem = state.payload.schedule[state.payload.schedule.length - 1];
   const lastEnd = new Date(lastItem.start).getTime() + lastItem.duration * 1000;
@@ -80,6 +85,14 @@ function getCurrentIndex() {
   return state.payload.schedule.findIndex((item) => item.id === currentId);
 }
 
+function getActiveIndex() {
+  if (state.ui.previewIndex == null) {
+    return getCurrentIndex();
+  }
+
+  return Math.max(0, Math.min(state.ui.previewIndex, state.payload.schedule.length - 1));
+}
+
 function renderOverview() {
   const currentState = state.payload.state;
   if (!currentState) return;
@@ -88,11 +101,10 @@ function renderOverview() {
   elements.offsetStatus.textContent = formatOffsetLabel(currentState.globalOffsetSeconds);
   elements.scheduleCount.textContent = String(state.payload.schedule.length);
 
-  const currentItem = state.payload.schedule.find(
-    (item) => item.id === currentState.currentScheduleId
-  );
-  elements.currentSchedule.textContent = currentItem
-    ? `${currentItem.title} / ${currentItem.section}`
+  const activeIndex = getActiveIndex();
+  const activeItem = activeIndex >= 0 ? state.payload.schedule[activeIndex] : null;
+  elements.currentSchedule.textContent = activeItem
+    ? `${activeItem.title} / ${activeItem.section}`
     : '待機中';
 }
 
@@ -129,9 +141,10 @@ function renderHeaderStats() {
 
 function renderCurrentEvent() {
   const displayedNow = getDisplayedNow();
-  const currentIndex = getCurrentIndex();
-  const currentItem = currentIndex >= 0 ? state.payload.schedule[currentIndex] : null;
-  const nextItem = state.payload.schedule.find((item) => new Date(item.start).getTime() > displayedNow);
+  const actualCurrentIndex = getCurrentIndex();
+  const activeIndex = getActiveIndex();
+  const currentItem = activeIndex >= 0 ? state.payload.schedule[activeIndex] : null;
+  const nextRealItem = state.payload.schedule.find((item) => new Date(item.start).getTime() > displayedNow);
 
   if (!currentItem) {
     elements.currentEvent.innerHTML = `
@@ -139,8 +152,8 @@ function renderCurrentEvent() {
         <p class="empty-state">進行中のイベントはありません。</p>
         <div class="next-event-card">
           <span>次の予定</span>
-          <strong>${nextItem ? nextItem.title : '予定なし'}</strong>
-          <p>${nextItem ? `開始まで ${formatSeconds(Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000))}` : 'スケジュールに次の予定がありません。'}</p>
+          <strong>${nextRealItem ? nextRealItem.title : '予定なし'}</strong>
+          <p>${nextRealItem ? `開始まで ${formatSeconds(Math.floor((new Date(nextRealItem.start).getTime() - displayedNow) / 1000))}` : 'スケジュールに次の予定がありません。'}</p>
         </div>
       </div>
     `;
@@ -149,13 +162,16 @@ function renderCurrentEvent() {
 
   const start = new Date(currentItem.start).getTime();
   const end = start + currentItem.duration * 1000;
-  const elapsed = Math.max(0, Math.floor((displayedNow - start) / 1000));
-  const remaining = Math.max(0, Math.floor((end - displayedNow) / 1000));
-  const progress = Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
-  const previousItem = currentIndex > 0 ? state.payload.schedule[currentIndex - 1] : null;
-  const followingItem = state.payload.schedule[currentIndex + 1] ?? null;
-  const nextCountdown = followingItem
-    ? Math.max(0, Math.floor((new Date(followingItem.start).getTime() - displayedNow) / 1000))
+  const isPreviewing = state.ui.previewIndex != null && activeIndex !== actualCurrentIndex;
+  const elapsed = isPreviewing ? 0 : Math.max(0, Math.floor((displayedNow - start) / 1000));
+  const remaining = isPreviewing ? currentItem.duration : Math.max(0, Math.floor((end - displayedNow) / 1000));
+  const progress = isPreviewing
+    ? 0
+    : Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
+  const previousItem = activeIndex > 0 ? state.payload.schedule[activeIndex - 1] : null;
+  const nextItem = state.payload.schedule[activeIndex + 1] ?? null;
+  const nextCountdown = nextItem
+    ? Math.max(0, Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000))
     : null;
 
   elements.currentEvent.innerHTML = `
@@ -171,34 +187,35 @@ function renderCurrentEvent() {
       </div>
     </div>
     <div class="progress-meta">
-      <span>経過 ${formatSeconds(elapsed)}</span>
-      <span>進行率 ${Math.round(progress)}%</span>
+      <span>${isPreviewing ? 'プレビュー表示' : `経過 ${formatSeconds(elapsed)}`}</span>
+      <span>${isPreviewing ? 'オフセット変更なし' : `進行率 ${Math.round(progress)}%`}</span>
     </div>
     <div class="progress-bar" aria-hidden="true">
       <span style="width: ${progress}%"></span>
     </div>
     <div class="next-event-card">
       <span>次の予定</span>
-      <strong>${followingItem ? followingItem.title : '次の予定なし'}</strong>
-      <p>${followingItem ? `${formatClock(followingItem.start)} 開始 / あと ${formatSeconds(nextCountdown)}` : 'この後の予定は登録されていません。'}</p>
+      <strong>${nextItem ? nextItem.title : '次の予定なし'}</strong>
+      <p>${nextItem ? `${formatClock(new Date(nextItem.start).getTime())} 開始 / あと ${formatSeconds(nextCountdown)}` : 'この後の予定は登録されていません。'}</p>
     </div>
     <div class="event-shift-actions">
-      <button class="ghost-button" data-schedule-action="previous" ${previousItem ? '' : 'disabled'}>前のイベントへ戻す</button>
-      <button class="ghost-button" data-schedule-action="hold">まだ終わっていない</button>
-      <button data-schedule-action="next" ${followingItem ? '' : 'disabled'}>このイベントは終了</button>
+      <button class="ghost-button" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>戻す</button>
+      <button class="ghost-button" data-preview-action="next" ${nextItem ? '' : 'disabled'}>次へ</button>
+      <button class="force-button" data-schedule-action="previous" ${previousItem ? '' : 'disabled'}>戻す（強制）</button>
+      <button class="force-button" data-schedule-action="next" ${nextItem ? '' : 'disabled'}>次へ（強制）</button>
     </div>
   `;
 }
 
 function renderSchedule() {
-  const currentState = state.payload.state;
   const displayedNow = getDisplayedNow();
+  const activeIndex = getActiveIndex();
 
   elements.scheduleList.innerHTML = state.payload.schedule
-    .map((item) => {
+    .map((item, index) => {
       const start = new Date(item.start).getTime();
       const end = start + item.duration * 1000;
-      const isCurrent = currentState?.currentScheduleId === item.id;
+      const isCurrent = activeIndex === index;
       const isDone = displayedNow >= end;
       const isUpcoming = displayedNow < start;
       const status = isUpcoming
@@ -227,6 +244,7 @@ function renderSchedule() {
 
 function getLiveTimerValue(timer) {
   if (timer.status !== 'running') return timer.value;
+
   const elapsed = Math.max(0, Math.floor((Date.now() - timer.lastUpdate) / 1000));
   return timer.mode === 'up'
     ? timer.value + elapsed
@@ -268,6 +286,7 @@ function renderAll() {
 async function bootstrap() {
   const response = await fetch('/api/bootstrap');
   state.payload = await response.json();
+  state.ui.previewIndex = null;
   renderAll();
 }
 
@@ -281,12 +300,16 @@ socket.on('disconnect', () => {
 
 socket.on('sync_state', (payload) => {
   state.payload = payload;
+  if (state.ui.previewIndex != null && state.ui.previewIndex >= payload.schedule.length) {
+    state.ui.previewIndex = null;
+  }
   renderAll();
 });
 
 document.addEventListener('click', async (event) => {
   const offsetButton = event.target.closest('[data-offset]');
   if (offsetButton) {
+    state.ui.previewIndex = null;
     await fetch('/api/offset', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -297,6 +320,7 @@ document.addEventListener('click', async (event) => {
 
   const timerButton = event.target.closest('[data-timer]');
   if (timerButton) {
+    state.ui.previewIndex = null;
     await fetch(`/api/timer/${timerButton.dataset.timer}/${timerButton.dataset.action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -305,8 +329,19 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
+  const previewButton = event.target.closest('[data-preview-action]');
+  if (previewButton) {
+    const activeIndex = getActiveIndex();
+    if (activeIndex < 0) return;
+    const delta = previewButton.dataset.previewAction === 'previous' ? -1 : 1;
+    state.ui.previewIndex = Math.max(0, Math.min(activeIndex + delta, state.payload.schedule.length - 1));
+    renderAll();
+    return;
+  }
+
   const scheduleButton = event.target.closest('[data-schedule-action]');
   if (scheduleButton) {
+    state.ui.previewIndex = null;
     await fetch('/api/schedule/shift', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
