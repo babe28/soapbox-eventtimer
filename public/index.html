@@ -21,7 +21,25 @@
             <a class="nav-link current" href="/">Dashboard</a>
             <a class="nav-link" href="/schedule.html">Settings</a>
           </div>
-          <div class="hero-status">
+          <div class="hero-status hero-status-wide">
+            <div class="status-chip status-chip-donut">
+              <span>全体消化率</span>
+              <div class="status-donut">
+                <div id="event-progress-donut" class="donut-ring"><span id="event-progress-value">0%</span></div>
+                <strong id="event-progress-label">0 / 0</strong>
+              </div>
+            </div>
+            <div class="status-chip status-chip-donut">
+              <span>最終終了まで</span>
+              <div class="status-donut">
+                <div id="final-end-donut" class="donut-ring"><span id="final-end-value">--:--:--</span></div>
+                <strong id="final-end-label">--:--:--</strong>
+              </div>
+            </div>
+            <div class="status-chip">
+              <span>進行差分</span>
+              <strong id="offset-status">定刻</strong>
+            </div>
             <div class="status-chip">
               <span>Socket</span>
               <strong id="socket-status">Connecting</strong>
@@ -84,7 +102,7 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Live Run</p>
-              <h2>スケジュール一覧</h2>
+              <h2>俯瞰スケジュール</h2>
             </div>
           </div>
           <div id="schedule-list" class="schedule-list"></div>
@@ -94,7 +112,7 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Timers</p>
-              <h2>手動タイマー</h2>
+              <h2>独立タイマー</h2>
             </div>
           </div>
           <div id="timer-list" class="timer-list"></div>

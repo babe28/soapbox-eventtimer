@@ -109,11 +109,7 @@ function advanceTimers(referenceTime = Date.now()) {
       return timer;
     }
 
-    const elapsedSeconds = Math.max(
-      0,
-      Math.floor((referenceTime - timer.lastUpdate) / 1000)
-    );
-
+    const elapsedSeconds = Math.max(0, Math.floor((referenceTime - timer.lastUpdate) / 1000));
     if (elapsedSeconds === 0) {
       return timer;
     }
@@ -204,6 +200,56 @@ function applyTimerAction(timer, action, value) {
   return true;
 }
 
+function getScheduleIndexByCurrent(referenceTime = Date.now()) {
+  const displayedNow = referenceTime + state.globalOffsetSeconds * 1000;
+  return schedule.findIndex((item) => {
+    const start = new Date(item.start).getTime();
+    const end = start + item.duration * 1000;
+    return displayedNow >= start && displayedNow < end;
+  });
+}
+
+function shiftSchedule(action, referenceTime = Date.now()) {
+  if (schedule.length === 0) {
+    return false;
+  }
+
+  const currentIndex = getScheduleIndexByCurrent(referenceTime);
+  const displayedNow = referenceTime + state.globalOffsetSeconds * 1000;
+
+  if (action === 'hold') {
+    const item = currentIndex >= 0 ? schedule[currentIndex] : schedule[0];
+    const start = new Date(item.start).getTime();
+    const safeTime = Math.min(displayedNow, start + item.duration * 1000 - 1000);
+    state.globalOffsetSeconds = Math.floor((safeTime - referenceTime) / 1000);
+    return true;
+  }
+
+  if (action === 'next') {
+    const baseIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
+    const nextItem = schedule[Math.min(baseIndex, schedule.length - 1)];
+    if (!nextItem) {
+      return false;
+    }
+
+    state.globalOffsetSeconds = Math.floor((new Date(nextItem.start).getTime() - referenceTime) / 1000);
+    return true;
+  }
+
+  if (action === 'previous') {
+    const baseIndex = currentIndex > 0 ? currentIndex - 1 : 0;
+    const previousItem = schedule[baseIndex];
+    if (!previousItem) {
+      return false;
+    }
+
+    state.globalOffsetSeconds = Math.floor((new Date(previousItem.start).getTime() - referenceTime + 1000) / 1000);
+    return true;
+  }
+
+  return false;
+}
+
 async function initializeData() {
   await ensureJsonFile(STATE_PATH, createDefaultState);
   await ensureJsonFile(SCHEDULE_PATH, createDefaultSchedule);
@@ -256,17 +302,6 @@ io.on('connection', (socket) => {
     await syncAll();
   });
 
-  socket.on('resync', async (itemId) => {
-    const item = schedule.find((entry) => entry.id === itemId);
-    if (!item) {
-      return;
-    }
-
-    const originalStart = new Date(item.start).getTime();
-    state.globalOffsetSeconds = Math.floor((Date.now() - originalStart) / 1000);
-    await syncAll();
-  });
-
   socket.on('control_timer', async ({ id, action, value }) => {
     const timer = findTimer(id);
     if (!applyTimerAction(timer, action, value)) {
@@ -298,21 +333,47 @@ app.put('/api/schedule', async (req, res) => {
   res.json({ success: true, schedule: clone(schedule) });
 });
 
+app.put('/api/timers', async (req, res) => {
+  if (!Array.isArray(req.body?.timers)) {
+    res.status(400).json({ success: false, message: 'timers must be an array.' });
+    return;
+  }
+
+  const updates = new Map(
+    req.body.timers.map((timer) => [String(timer.id), Math.max(1, Math.round(Number(timer.initialValue || 0)))])
+  );
+
+  state.timers = state.timers.map((timer) => {
+    const nextInitialValue = updates.get(String(timer.id));
+    if (!nextInitialValue) {
+      return timer;
+    }
+
+    return {
+      ...timer,
+      status: 'stopped',
+      initialValue: nextInitialValue,
+      value: nextInitialValue,
+      lastUpdate: Date.now(),
+    };
+  });
+
+  await syncAll();
+  res.json({ success: true, state: clone(state) });
+});
+
 app.post('/api/offset', async (req, res) => {
   state.globalOffsetSeconds += Number(req.body?.value || 0);
   await syncAll();
   res.json({ success: true, state: getPayload().state });
 });
 
-app.post('/api/resync', async (req, res) => {
-  const item = schedule.find((entry) => entry.id === req.body?.id);
-  if (!item) {
-    res.status(404).json({ success: false, message: 'Schedule item not found.' });
+app.post('/api/schedule/shift', async (req, res) => {
+  if (!shiftSchedule(req.body?.action)) {
+    res.status(400).json({ success: false, message: 'Invalid schedule shift action.' });
     return;
   }
 
-  const originalStart = new Date(item.start).getTime();
-  state.globalOffsetSeconds = Math.floor((Date.now() - originalStart) / 1000);
   await syncAll();
   res.json({ success: true, state: getPayload().state });
 });

@@ -30,13 +30,14 @@ body {
 }
 
 .app-shell {
-  width: min(1360px, calc(100% - 32px));
+  width: min(1440px, calc(100% - 28px));
   margin: 0 auto;
   padding: 24px 0 48px;
 }
 
 .app-shell-dashboard {
   min-height: 100vh;
+  width: min(1720px, calc(100% - 24px));
   padding-bottom: 24px;
 }
 
@@ -56,12 +57,12 @@ body {
   border-radius: 24px;
 }
 
-.hero-main {
-  min-width: 0;
-}
-
 .hero-dashboard {
   align-items: flex-start;
+}
+
+.hero-main {
+  min-width: 0;
 }
 
 .hero-tools {
@@ -70,11 +71,6 @@ body {
   justify-content: flex-end;
   gap: 14px;
   margin-left: auto;
-}
-
-.top-nav-header {
-  align-self: flex-start;
-  margin-top: 0;
 }
 
 .eyebrow,
@@ -93,7 +89,7 @@ body {
 }
 
 .hero-copy {
-  max-width: 620px;
+  max-width: 720px;
   margin: 10px 0 0;
   line-height: 1.5;
   color: var(--muted);
@@ -103,6 +99,10 @@ body {
   display: flex;
   gap: 10px;
   margin-top: 8px;
+}
+
+.top-nav-header {
+  margin-top: 0;
 }
 
 .nav-link {
@@ -125,12 +125,17 @@ body {
   align-self: start;
 }
 
+.hero-status-wide {
+  grid-template-columns: repeat(5, minmax(132px, 1fr));
+}
+
 .status-chip,
 .metric-card,
 .schedule-item,
 .editor-card,
 .timer-card,
-.json-grid article {
+.json-grid article,
+.timer-config-card {
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--panel);
@@ -139,6 +144,10 @@ body {
 
 .status-chip {
   padding: 14px 16px;
+}
+
+.status-chip-donut {
+  min-width: 150px;
 }
 
 .status-chip span,
@@ -157,6 +166,32 @@ body {
   font-size: 1.2rem;
 }
 
+.status-donut {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+  justify-items: center;
+}
+
+.donut-ring {
+  --value: 0%;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 252, 247, 1) 56%, transparent 57%),
+    conic-gradient(var(--accent) 0 var(--value), rgba(22, 48, 43, 0.1) var(--value) 100%);
+}
+
+.donut-ring span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--panel-strong);
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
@@ -164,13 +199,9 @@ body {
   margin-top: 22px;
 }
 
-.dashboard-grid-compact {
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
 .dashboard-stage {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(420px, 1fr) minmax(340px, 420px);
+  grid-template-columns: minmax(220px, 280px) minmax(640px, 1.25fr) minmax(420px, 0.95fr);
   grid-template-areas:
     "control feature timeline"
     "timers feature timeline";
@@ -189,13 +220,16 @@ body {
   box-shadow: var(--shadow);
 }
 
-.panel-primary,
 .panel-secondary {
   grid-column: span 12;
 }
 
 .panel-compact {
   padding: 18px 20px;
+}
+
+.panel-control {
+  grid-area: control;
 }
 
 .panel-feature {
@@ -207,10 +241,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-}
-
-.panel-control {
-  grid-area: control;
 }
 
 .panel-timers {
@@ -228,7 +258,8 @@ body {
 .ghost-button,
 .offset-controls button,
 .timer-actions button,
-.resync-button {
+.event-shift-actions button,
+#save-timers {
   border: 0;
   border-radius: 999px;
   cursor: pointer;
@@ -260,7 +291,8 @@ body {
 
 .offset-controls button,
 .timer-actions button,
-.resync-button {
+.event-shift-actions button,
+#save-timers {
   padding: 8px 12px;
   background: var(--panel-strong);
   color: white;
@@ -269,7 +301,8 @@ body {
 .schedule-list,
 .timer-list,
 .json-grid,
-.editor-list {
+.editor-list,
+.timer-config-list {
   display: grid;
   gap: 14px;
 }
@@ -295,7 +328,8 @@ body {
 .schedule-item h3,
 .editor-card h3,
 .timer-card h3,
-.json-grid h3 {
+.json-grid h3,
+.timer-config-card h3 {
   margin: 0 0 6px;
 }
 
@@ -304,6 +338,14 @@ body {
 .timer-card p {
   margin: 0;
   color: var(--muted);
+}
+
+.schedule-main {
+  min-width: 0;
+}
+
+.schedule-subtitle {
+  font-size: 0.92rem;
 }
 
 .editor-card {
@@ -315,10 +357,27 @@ body {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+  min-width: 220px;
 }
 
-.resync-button {
+.schedule-badge {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: white;
+  background: var(--panel-strong);
+}
+
+.schedule-badge.is-live {
   background: var(--accent);
+}
+
+.schedule-badge.is-done {
+  background: var(--muted);
+}
+
+.schedule-badge.is-upcoming {
+  background: var(--success);
 }
 
 .timer-list {
@@ -384,7 +443,7 @@ body {
 
 .current-event-card h3 {
   margin: 6px 0 8px;
-  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-size: clamp(2rem, 3vw, 3.2rem);
   line-height: 1.1;
 }
 
@@ -450,6 +509,17 @@ body {
   align-self: center;
 }
 
+.event-shift-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.event-shift-actions button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .empty-state {
   align-self: center;
   font-size: 1rem;
@@ -461,7 +531,8 @@ body {
   gap: 14px;
 }
 
-.editor-form label {
+.editor-form label,
+.timer-config-card label {
   display: grid;
   gap: 8px;
   color: var(--muted);
@@ -469,7 +540,8 @@ body {
 }
 
 .editor-form input,
-.editor-form select {
+.editor-form select,
+.timer-config-card input {
   width: 100%;
   padding: 12px 14px;
   border: 1px solid var(--line);
@@ -477,6 +549,14 @@ body {
   background: rgba(255, 255, 255, 0.86);
   color: var(--ink);
   font: inherit;
+}
+
+.timer-config-card {
+  display: grid;
+  grid-template-columns: 1fr minmax(180px, 240px);
+  gap: 16px;
+  align-items: end;
+  padding: 16px;
 }
 
 .editor-actions,
@@ -548,9 +628,11 @@ pre {
   .hero-tools {
     width: 100%;
     justify-content: space-between;
+    flex-direction: column;
   }
 
   .hero-status,
+  .hero-status-wide,
   .overview-metrics,
   .json-grid,
   .editor-form {
@@ -563,18 +645,19 @@ pre {
 
   .schedule-side {
     align-items: flex-start;
+    min-width: 0;
   }
 
   .current-event-clock {
     text-align: left;
   }
+
+  .timer-config-card {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (min-width: 1280px) and (min-height: 900px) {
-  .app-shell-dashboard {
-    width: min(1480px, calc(100% - 32px));
-  }
-
   .schedule-list {
     max-height: min(62vh, 700px);
     overflow: auto;

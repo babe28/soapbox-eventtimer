@@ -12,17 +12,22 @@ const elements = {
   socketStatus: document.querySelector('#socket-status'),
   displayedTime: document.querySelector('#displayed-time'),
   offsetSeconds: document.querySelector('#offset-seconds'),
+  offsetStatus: document.querySelector('#offset-status'),
   currentSchedule: document.querySelector('#current-schedule'),
   scheduleCount: document.querySelector('#schedule-count'),
   currentEvent: document.querySelector('#current-event'),
   scheduleList: document.querySelector('#schedule-list'),
   timerList: document.querySelector('#timer-list'),
+  eventProgressDonut: document.querySelector('#event-progress-donut'),
+  eventProgressValue: document.querySelector('#event-progress-value'),
+  eventProgressLabel: document.querySelector('#event-progress-label'),
+  finalEndDonut: document.querySelector('#final-end-donut'),
+  finalEndValue: document.querySelector('#final-end-value'),
+  finalEndLabel: document.querySelector('#final-end-label'),
 };
 
 function formatClock(value) {
-  return new Date(value).toLocaleTimeString('ja-JP', {
-    hour12: false,
-  });
+  return new Date(value).toLocaleTimeString('ja-JP', { hour12: false });
 }
 
 function formatSeconds(totalSeconds) {
@@ -35,33 +40,52 @@ function formatSeconds(totalSeconds) {
 }
 
 function formatTimerStatus(status) {
-  if (status === 'running') {
-    return '動作中';
-  }
-
-  if (status === 'paused') {
-    return '一時停止';
-  }
-
+  if (status === 'running') return '動作中';
+  if (status === 'paused') return '一時停止';
   return '停止中';
+}
+
+function formatOffsetLabel(seconds) {
+  if (seconds === 0) return '定刻';
+  const absSeconds = Math.abs(seconds);
+  const minutes = Math.floor(absSeconds / 60);
+  const remainSeconds = absSeconds % 60;
+  const minuteText = minutes > 0 ? `${minutes}分` : '';
+  const secondText = remainSeconds > 0 ? `${remainSeconds}秒` : '';
+  const deltaText = `${minuteText}${secondText}` || '0秒';
+  return seconds > 0 ? `${deltaText}押し` : `${deltaText}巻き`;
+}
+
+function setDonutValue(element, percent) {
+  const safePercent = Math.max(0, Math.min(100, percent));
+  element.style.setProperty('--value', `${safePercent}%`);
 }
 
 function getDisplayedNow() {
   const currentState = state.payload.state;
-  if (!currentState) {
-    return Date.now();
-  }
-
+  if (!currentState) return Date.now();
   return Date.now() + currentState.globalOffsetSeconds * 1000;
+}
+
+function getScheduleBounds() {
+  if (state.payload.schedule.length === 0) return null;
+  const firstStart = new Date(state.payload.schedule[0].start).getTime();
+  const lastItem = state.payload.schedule[state.payload.schedule.length - 1];
+  const lastEnd = new Date(lastItem.start).getTime() + lastItem.duration * 1000;
+  return { firstStart, lastEnd };
+}
+
+function getCurrentIndex() {
+  const currentId = state.payload.state?.currentScheduleId;
+  return state.payload.schedule.findIndex((item) => item.id === currentId);
 }
 
 function renderOverview() {
   const currentState = state.payload.state;
-  if (!currentState) {
-    return;
-  }
+  if (!currentState) return;
 
   elements.offsetSeconds.textContent = `${currentState.globalOffsetSeconds}s`;
+  elements.offsetStatus.textContent = formatOffsetLabel(currentState.globalOffsetSeconds);
   elements.scheduleCount.textContent = String(state.payload.schedule.length);
 
   const currentItem = state.payload.schedule.find(
@@ -72,12 +96,41 @@ function renderOverview() {
     : '待機中';
 }
 
-function renderCurrentEvent() {
-  const currentState = state.payload.state;
+function renderHeaderStats() {
+  const bounds = getScheduleBounds();
+  if (!bounds) {
+    elements.eventProgressValue.textContent = '0%';
+    elements.eventProgressLabel.textContent = '0 / 0';
+    elements.finalEndValue.textContent = '--:--:--';
+    elements.finalEndLabel.textContent = '--:--:--';
+    setDonutValue(elements.eventProgressDonut, 0);
+    setDonutValue(elements.finalEndDonut, 0);
+    return;
+  }
+
   const displayedNow = getDisplayedNow();
-  const currentItem = state.payload.schedule.find(
-    (item) => item.id === currentState?.currentScheduleId
-  );
+  const totalDuration = Math.max(1, bounds.lastEnd - bounds.firstStart);
+  const elapsed = Math.min(Math.max(displayedNow - bounds.firstStart, 0), totalDuration);
+  const consumedPercent = (elapsed / totalDuration) * 100;
+  const completedCount = state.payload.schedule.filter((item) => {
+    const itemEnd = new Date(item.start).getTime() + item.duration * 1000;
+    return displayedNow >= itemEnd;
+  }).length;
+  const remainingSeconds = Math.max(0, Math.floor((bounds.lastEnd - displayedNow) / 1000));
+
+  elements.eventProgressValue.textContent = `${Math.round(consumedPercent)}%`;
+  elements.eventProgressLabel.textContent = `${completedCount} / ${state.payload.schedule.length}`;
+  setDonutValue(elements.eventProgressDonut, consumedPercent);
+
+  elements.finalEndValue.textContent = formatSeconds(remainingSeconds);
+  elements.finalEndLabel.textContent = formatClock(bounds.lastEnd);
+  setDonutValue(elements.finalEndDonut, 100 - consumedPercent);
+}
+
+function renderCurrentEvent() {
+  const displayedNow = getDisplayedNow();
+  const currentIndex = getCurrentIndex();
+  const currentItem = currentIndex >= 0 ? state.payload.schedule[currentIndex] : null;
   const nextItem = state.payload.schedule.find((item) => new Date(item.start).getTime() > displayedNow);
 
   if (!currentItem) {
@@ -95,10 +148,11 @@ function renderCurrentEvent() {
   }
 
   const start = new Date(currentItem.start).getTime();
+  const end = start + currentItem.duration * 1000;
   const elapsed = Math.max(0, Math.floor((displayedNow - start) / 1000));
-  const remaining = Math.max(0, currentItem.duration - elapsed);
+  const remaining = Math.max(0, Math.floor((end - displayedNow) / 1000));
   const progress = Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
-  const currentIndex = state.payload.schedule.findIndex((item) => item.id === currentItem.id);
+  const previousItem = currentIndex > 0 ? state.payload.schedule[currentIndex - 1] : null;
   const followingItem = state.payload.schedule[currentIndex + 1] ?? null;
   const nextCountdown = followingItem
     ? Math.max(0, Math.floor((new Date(followingItem.start).getTime() - displayedNow) / 1000))
@@ -107,12 +161,12 @@ function renderCurrentEvent() {
   elements.currentEvent.innerHTML = `
     <div class="current-event-head">
       <div>
-        <p class="current-event-section">${currentItem.section} / ${currentItem.type}</p>
+        <p class="current-event-section">${currentItem.section}</p>
         <h3>${currentItem.title}</h3>
         <p class="current-event-subtitle">${currentItem.subTitle || 'サブタイトルなし'}</p>
       </div>
       <div class="current-event-clock">
-        <span>開始 ${formatClock(start)}</span>
+        <span>${formatClock(start)} - ${formatClock(end)}</span>
         <strong>${formatSeconds(remaining)}</strong>
       </div>
     </div>
@@ -128,6 +182,11 @@ function renderCurrentEvent() {
       <strong>${followingItem ? followingItem.title : '次の予定なし'}</strong>
       <p>${followingItem ? `${formatClock(followingItem.start)} 開始 / あと ${formatSeconds(nextCountdown)}` : 'この後の予定は登録されていません。'}</p>
     </div>
+    <div class="event-shift-actions">
+      <button class="ghost-button" data-schedule-action="previous" ${previousItem ? '' : 'disabled'}>前のイベントへ戻す</button>
+      <button class="ghost-button" data-schedule-action="hold">まだ終わっていない</button>
+      <button data-schedule-action="next" ${followingItem ? '' : 'disabled'}>このイベントは終了</button>
+    </div>
   `;
 }
 
@@ -140,25 +199,25 @@ function renderSchedule() {
       const start = new Date(item.start).getTime();
       const end = start + item.duration * 1000;
       const isCurrent = currentState?.currentScheduleId === item.id;
-      const delta = Math.floor((displayedNow - start) / 1000);
-      const status = displayedNow < start
-        ? `開始まで ${formatSeconds(Math.abs(delta))}`
-        : displayedNow < end
-          ? `進行中 +${formatSeconds(delta)}`
-          : `終了 ${formatSeconds(displayedNow - end)} 前`;
+      const isDone = displayedNow >= end;
+      const isUpcoming = displayedNow < start;
+      const status = isUpcoming
+        ? `開始まで ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
+        : isDone
+          ? '終了済み'
+          : '進行中';
 
       return `
         <article class="schedule-item ${isCurrent ? 'is-current' : ''}">
-          <div>
+          <div class="schedule-main">
             <h3>${item.title}</h3>
-            <p>${item.subTitle || 'サブタイトルなし'}</p>
-            <span class="schedule-meta">${item.section} / ${item.type}</span>
+            <p class="schedule-subtitle">${item.subTitle || 'サブタイトルなし'}</p>
+            <span class="schedule-meta">${item.section}</span>
           </div>
           <div class="schedule-side">
-            <strong>${formatClock(start)}</strong>
-            <span class="schedule-meta">${Math.round(item.duration / 60)}分</span>
-            <span class="schedule-meta">${status}</span>
-            <button class="resync-button" data-resync="${item.id}">Resync</button>
+            <strong>${formatClock(start)}-${formatClock(end)}</strong>
+            <span class="schedule-meta">(${formatSeconds(item.duration)})</span>
+            <span class="schedule-badge ${isCurrent ? 'is-live' : isDone ? 'is-done' : 'is-upcoming'}">${status}</span>
           </div>
         </article>
       `;
@@ -167,10 +226,7 @@ function renderSchedule() {
 }
 
 function getLiveTimerValue(timer) {
-  if (timer.status !== 'running') {
-    return timer.value;
-  }
-
+  if (timer.status !== 'running') return timer.value;
   const elapsed = Math.max(0, Math.floor((Date.now() - timer.lastUpdate) / 1000));
   return timer.mode === 'up'
     ? timer.value + elapsed
@@ -203,6 +259,7 @@ function renderClock() {
 function renderAll() {
   renderClock();
   renderOverview();
+  renderHeaderStats();
   renderCurrentEvent();
   renderSchedule();
   renderTimers();
@@ -238,16 +295,6 @@ document.addEventListener('click', async (event) => {
     return;
   }
 
-  const resyncButton = event.target.closest('[data-resync]');
-  if (resyncButton) {
-    await fetch('/api/resync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: resyncButton.dataset.resync }),
-    });
-    return;
-  }
-
   const timerButton = event.target.closest('[data-timer]');
   if (timerButton) {
     await fetch(`/api/timer/${timerButton.dataset.timer}/${timerButton.dataset.action}`, {
@@ -255,15 +302,23 @@ document.addEventListener('click', async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
+    return;
+  }
+
+  const scheduleButton = event.target.closest('[data-schedule-action]');
+  if (scheduleButton) {
+    await fetch('/api/schedule/shift', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: scheduleButton.dataset.scheduleAction }),
+    });
   }
 });
 
 setInterval(() => {
-  if (!state.payload.state) {
-    return;
-  }
-
+  if (!state.payload.state) return;
   renderClock();
+  renderHeaderStats();
   renderCurrentEvent();
   renderSchedule();
   renderTimers();

@@ -14,7 +14,7 @@
             <p class="eyebrow">Soapbox Event Timer</p>
             <h1>設定画面</h1>
             <p class="hero-copy">
-              スケジュール編集、JSON確認、モックデータの初期化を行う画面です。
+              スケジュール編集、独立タイマー初期値の調整、JSON確認、モックデータ初期化を行う画面です。
             </p>
           </div>
           <div class="top-nav">
@@ -93,6 +93,17 @@
               <button type="button" id="delete-entry" class="danger-button">削除</button>
             </div>
           </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Timers</p>
+              <h2>独立タイマー初期値</h2>
+            </div>
+            <button id="save-timers" type="button">タイマー設定を保存</button>
+          </div>
+          <form id="timer-form" class="timer-config-list"></form>
         </section>
 
         <section class="panel panel-secondary">

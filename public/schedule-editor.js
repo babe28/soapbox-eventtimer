@@ -10,11 +10,13 @@ const editorElements = {
   editorStatus: document.querySelector('#editor-status'),
   editorList: document.querySelector('#editor-list'),
   entryForm: document.querySelector('#entry-form'),
+  timerForm: document.querySelector('#timer-form'),
   addEntry: document.querySelector('#add-entry'),
   duplicateEntry: document.querySelector('#duplicate-entry'),
   deleteEntry: document.querySelector('#delete-entry'),
   sortEntries: document.querySelector('#sort-entries'),
   saveSchedule: document.querySelector('#save-schedule'),
+  saveTimers: document.querySelector('#save-timers'),
   saveNote: document.querySelector('#save-note'),
   schedulePreview: document.querySelector('#schedule-preview'),
   stateJson: document.querySelector('#state-json'),
@@ -47,6 +49,10 @@ function markDirty(isDirty) {
   editorElements.saveNote.textContent = isDirty
     ? '未保存の変更があります。'
     : 'schedule.json に保存済みです。';
+}
+
+function setStatus(text) {
+  editorElements.editorStatus.textContent = text;
 }
 
 function getSelectedEntry() {
@@ -88,6 +94,24 @@ function renderForm() {
   editorElements.entryForm.elements.type.value = entry.type;
 }
 
+function renderTimerForm() {
+  const timers = editorState.rawState?.timers ?? [];
+  editorElements.timerForm.innerHTML = timers
+    .map((timer) => `
+      <article class="timer-config-card">
+        <div>
+          <p class="panel-kicker">Timer ${timer.id}</p>
+          <h3>${timer.label}</h3>
+        </div>
+        <label>
+          <span>初期値（秒）</span>
+          <input type="number" min="1" step="1" name="timer-${timer.id}" value="${timer.initialValue}" />
+        </label>
+      </article>
+    `)
+    .join('');
+}
+
 function renderPreview() {
   editorElements.schedulePreview.textContent = JSON.stringify(editorState.schedule, null, 2);
 }
@@ -100,6 +124,7 @@ function renderRawJson() {
 function renderAll() {
   renderList();
   renderForm();
+  renderTimerForm();
   renderPreview();
   renderRawJson();
 }
@@ -164,7 +189,7 @@ editorElements.entryForm.addEventListener('submit', (event) => {
   );
 
   if (hasConflict) {
-    editorElements.editorStatus.textContent = 'ID が重複しています';
+    setStatus('ID が重複しています');
     return;
   }
 
@@ -223,15 +248,31 @@ editorElements.saveSchedule.addEventListener('click', async () => {
   });
 
   if (!response.ok) {
-    editorElements.editorStatus.textContent = '保存に失敗しました';
+    setStatus('保存に失敗しました');
     return;
   }
 
-  const data = await response.json();
-  editorState.schedule = data.schedule;
-  if (!editorState.schedule.some((item) => item.id === editorState.selectedId)) {
-    editorState.selectedId = editorState.schedule[0]?.id ?? null;
+  await loadSchedule();
+});
+
+editorElements.saveTimers.addEventListener('click', async () => {
+  const timers = (editorState.rawState?.timers ?? []).map((timer) => ({
+    id: timer.id,
+    initialValue: Number(editorElements.timerForm.elements[`timer-${timer.id}`].value),
+  }));
+
+  const response = await fetch('/api/timers', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ timers }),
+  });
+
+  if (!response.ok) {
+    setStatus('タイマー設定の保存に失敗しました');
+    return;
   }
+
+  setStatus('タイマー設定を保存しました');
   await loadSchedule();
 });
 
