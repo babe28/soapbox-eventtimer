@@ -126,7 +126,7 @@ body {
 }
 
 .hero-status-wide {
-  grid-template-columns: repeat(5, minmax(132px, 1fr));
+  grid-template-columns: repeat(4, minmax(132px, 1fr));
 }
 
 .status-chip,
@@ -150,6 +150,11 @@ body {
   min-width: 150px;
 }
 
+.status-chip-double {
+  display: grid;
+  gap: 10px;
+}
+
 .status-chip span,
 .metric-card span,
 .schedule-meta,
@@ -164,6 +169,10 @@ body {
   display: block;
   margin-top: 4px;
   font-size: 1.2rem;
+}
+
+.status-inline strong {
+  font-size: 1.05rem;
 }
 
 .status-donut {

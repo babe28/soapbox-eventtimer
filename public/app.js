@@ -53,7 +53,7 @@ function formatOffsetLabel(seconds) {
   const minuteText = minutes > 0 ? `${minutes}分` : '';
   const secondText = remainSeconds > 0 ? `${remainSeconds}秒` : '';
   const deltaText = `${minuteText}${secondText}` || '0秒';
-  return seconds > 0 ? `${deltaText}押し` : `${deltaText}巻き`;
+  return seconds > 0 ? `${deltaText}巻き` : `${deltaText}押し`;
 }
 
 function setDonutValue(element, percent) {
