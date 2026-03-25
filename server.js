@@ -13,6 +13,7 @@ const DATA_DIR = path.join(__dirname, 'data');
 const STATE_PATH = path.join(DATA_DIR, 'state.json');
 const SCHEDULE_PATH = path.join(DATA_DIR, 'schedule.json');
 const LOG_PATH = path.join(DATA_DIR, 'progress-log.json');
+const SAVED_SCHEDULES_DIR = path.join(DATA_DIR, 'schedules');
 
 function createDefaultDashboardConfig() {
   return {
@@ -107,6 +108,74 @@ async function loadJson(filePath) {
 
 async function saveJson(filePath, value) {
   await fs.writeFile(filePath, JSON.stringify(value, null, 2));
+}
+
+function normalizeScheduleFileName(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\.json$/i, '')
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '-')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
+function getSavedSchedulePath(name) {
+  return path.join(SAVED_SCHEDULES_DIR, `${name}.json`);
+}
+
+async function listSavedSchedules() {
+  await fs.mkdir(SAVED_SCHEDULES_DIR, { recursive: true });
+  const entries = await fs.readdir(SAVED_SCHEDULES_DIR, { withFileTypes: true });
+  const files = entries
+    .filter((entry) => entry.isFile() && entry.name.toLowerCase().endsWith('.json'))
+    .map((entry) => entry.name);
+
+  const schedules = await Promise.all(files.map(async (fileName) => {
+    const filePath = path.join(SAVED_SCHEDULES_DIR, fileName);
+    const stats = await fs.stat(filePath);
+    return {
+      name: path.basename(fileName, '.json'),
+      fileName,
+      updatedAt: stats.mtime.toISOString(),
+    };
+  }));
+
+  schedules.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  return schedules;
+}
+
+async function saveNamedSchedule(name, sourceSchedule) {
+  const normalizedName = normalizeScheduleFileName(name);
+  if (!normalizedName) {
+    return null;
+  }
+
+  const nextSchedule = loadSchedule(sourceSchedule);
+  await fs.mkdir(SAVED_SCHEDULES_DIR, { recursive: true });
+  await saveJson(getSavedSchedulePath(normalizedName), nextSchedule);
+  return normalizedName;
+}
+
+async function loadNamedSchedule(name) {
+  const normalizedName = normalizeScheduleFileName(name);
+  if (!normalizedName) {
+    return null;
+  }
+
+  try {
+    const loaded = await loadJson(getSavedSchedulePath(normalizedName));
+    return {
+      name: normalizedName,
+      schedule: loadSchedule(loaded),
+    };
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return null;
+    }
+    throw error;
+  }
 }
 
 function normalizeDashboardConfig(source) {
@@ -302,6 +371,7 @@ async function initializeData() {
   await ensureJsonFile(STATE_PATH, createDefaultState);
   await ensureJsonFile(SCHEDULE_PATH, createDefaultSchedule);
   await ensureJsonFile(LOG_PATH, () => []);
+  await fs.mkdir(SAVED_SCHEDULES_DIR, { recursive: true });
 
   state = loadState(await loadJson(STATE_PATH));
   schedule = loadSchedule(await loadJson(SCHEDULE_PATH));
@@ -369,6 +439,45 @@ app.get('/api/bootstrap', (_req, res) => {
 
 app.get('/api/schedule', (_req, res) => {
   res.json({ schedule: clone(schedule) });
+});
+
+app.get('/api/saved-schedules', async (_req, res) => {
+  const savedSchedules = await listSavedSchedules();
+  res.json({ savedSchedules });
+});
+
+app.post('/api/saved-schedules', async (req, res) => {
+  const savedName = await saveNamedSchedule(req.body?.name, req.body?.schedule ?? schedule);
+  if (!savedName) {
+    res.status(400).json({ success: false, message: 'A valid schedule name is required.' });
+    return;
+  }
+
+  res.json({
+    success: true,
+    name: savedName,
+    savedSchedules: await listSavedSchedules(),
+  });
+});
+
+app.post('/api/saved-schedules/load', async (req, res) => {
+  const loaded = await loadNamedSchedule(req.body?.name);
+  if (!loaded) {
+    res.status(404).json({ success: false, message: 'Saved schedule not found.' });
+    return;
+  }
+
+  schedule = loaded.schedule;
+  updateCurrentScheduleId();
+  await persistSchedule();
+  await persistState();
+  io.emit('sync_state', getPayload());
+  res.json({
+    success: true,
+    name: loaded.name,
+    schedule: clone(schedule),
+    savedSchedules: await listSavedSchedules(),
+  });
 });
 
 app.put('/api/schedule', async (req, res) => {

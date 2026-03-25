@@ -5,6 +5,7 @@ const editorState = {
   selectedId: null,
   dirty: false,
   rawState: null,
+  savedSchedules: [],
 };
 
 const editorElements = {
@@ -23,6 +24,10 @@ const editorElements = {
   saveTimers: document.querySelector('#save-timers'),
   saveDashboard: document.querySelector('#save-dashboard'),
   saveNote: document.querySelector('#save-note'),
+  savedScheduleName: document.querySelector('#saved-schedule-name'),
+  saveNamedSchedule: document.querySelector('#save-named-schedule'),
+  savedScheduleSelect: document.querySelector('#saved-schedule-select'),
+  loadNamedSchedule: document.querySelector('#load-named-schedule'),
   schedulePreview: document.querySelector('#schedule-preview'),
   progressLog: document.querySelector('#progress-log'),
   stateJson: document.querySelector('#state-json'),
@@ -60,6 +65,19 @@ function markDirty(isDirty) {
 
 function setStatus(text) {
   editorElements.editorStatus.textContent = text;
+}
+
+function renderSavedScheduleControls() {
+  const options = editorState.savedSchedules
+    .map((item) => {
+      const updated = new Date(item.updatedAt).toLocaleString('ja-JP', { hour12: false });
+      return `<option value="${item.name}">${item.name} (${updated})</option>`;
+    })
+    .join('');
+
+  editorElements.savedScheduleSelect.innerHTML = options || '<option value="">保存済みスケジュールなし</option>';
+  editorElements.savedScheduleSelect.disabled = editorState.savedSchedules.length === 0;
+  editorElements.loadNamedSchedule.disabled = editorState.savedSchedules.length === 0;
 }
 
 function getSelectedEntry() {
@@ -173,6 +191,7 @@ function renderAll() {
   renderForm();
   renderTimerForm();
   renderDashboardForm();
+  renderSavedScheduleControls();
   renderPreview();
   renderProgressLog();
   renderRawJson();
@@ -184,17 +203,20 @@ function selectEntry(id) {
 }
 
 async function loadSchedule() {
-  const [scheduleResponse, bootstrapResponse] = await Promise.all([
+  const [scheduleResponse, bootstrapResponse, savedScheduleResponse] = await Promise.all([
     fetch('/api/schedule'),
     fetch('/api/bootstrap'),
+    fetch('/api/saved-schedules'),
   ]);
   const scheduleData = await scheduleResponse.json();
   const bootstrapData = await bootstrapResponse.json();
+  const savedScheduleData = await savedScheduleResponse.json();
   editorState.schedule = scheduleData.schedule;
   editorState.rawState = {
     ...bootstrapData.state,
     progressLog: bootstrapData.progressLog ?? [],
   };
+  editorState.savedSchedules = savedScheduleData.savedSchedules ?? [];
   editorState.selectedId = scheduleData.schedule[0]?.id ?? null;
   markDirty(false);
   renderAll();
@@ -299,6 +321,56 @@ editorElements.saveSchedule.addEventListener('click', async () => {
   }
 
   await loadSchedule();
+});
+
+editorElements.saveNamedSchedule.addEventListener('click', async () => {
+  const requestedName = editorElements.savedScheduleName.value.trim();
+  if (!requestedName) {
+    setStatus('保存名を入力してください');
+    editorElements.savedScheduleName.focus();
+    return;
+  }
+
+  const response = await fetch('/api/saved-schedules', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: requestedName,
+      schedule: editorState.schedule,
+    }),
+  });
+
+  if (!response.ok) {
+    setStatus('名前付き保存に失敗しました');
+    return;
+  }
+
+  const result = await response.json();
+  editorElements.savedScheduleName.value = result.name;
+  await loadSchedule();
+  setStatus(`"${result.name}" を保存しました`);
+});
+
+editorElements.loadNamedSchedule.addEventListener('click', async () => {
+  const selectedName = editorElements.savedScheduleSelect.value;
+  if (!selectedName) {
+    setStatus('読み込むスケジュールを選んでください');
+    return;
+  }
+
+  const response = await fetch('/api/saved-schedules/load', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: selectedName }),
+  });
+
+  if (!response.ok) {
+    setStatus('スケジュールの読み込みに失敗しました');
+    return;
+  }
+
+  await loadSchedule();
+  setStatus(`"${selectedName}" を読み込みました`);
 });
 
 editorElements.saveTimers.addEventListener('click', async () => {
