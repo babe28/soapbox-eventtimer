@@ -13,6 +13,37 @@
   --danger: #b33f34;
   --shadow: 0 22px 60px rgba(22, 42, 37, 0.1);
   --shadow-soft: 0 12px 32px rgba(22, 42, 37, 0.08);
+  --hero-glow-a: rgba(214, 101, 58, 0.16);
+  --hero-glow-b: rgba(32, 128, 90, 0.16);
+  --code-bg: #18231f;
+  --code-ink: #dbe6de;
+  --theme-button-bg: rgba(24, 54, 48, 0.08);
+  --theme-button-border: rgba(24, 54, 48, 0.12);
+  --theme-button-ink: var(--panel-strong);
+}
+
+:root[data-theme="dark"] {
+  --bg: #071412;
+  --bg-accent: #10211d;
+  --panel: rgba(13, 28, 25, 0.84);
+  --panel-strong: #e7f4ef;
+  --ink: #edf7f2;
+  --muted: #9fb7af;
+  --line: rgba(203, 232, 221, 0.12);
+  --accent: #ff8d5c;
+  --accent-soft: rgba(255, 141, 92, 0.16);
+  --success: #33b37d;
+  --warning: #f0aa35;
+  --danger: #ef6b60;
+  --shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+  --shadow-soft: 0 12px 28px rgba(0, 0, 0, 0.26);
+  --hero-glow-a: rgba(255, 141, 92, 0.18);
+  --hero-glow-b: rgba(51, 179, 125, 0.12);
+  --code-bg: #06100f;
+  --code-ink: #d7ebe4;
+  --theme-button-bg: rgba(231, 244, 239, 0.08);
+  --theme-button-border: rgba(231, 244, 239, 0.12);
+  --theme-button-ink: #edf7f2;
 }
 
 * {
@@ -25,9 +56,17 @@ body {
   font-family: "Segoe UI", "Hiragino Sans", sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(circle at top left, rgba(214, 101, 58, 0.16), transparent 24%),
-    radial-gradient(circle at top right, rgba(32, 128, 90, 0.16), transparent 24%),
+    radial-gradient(circle at top left, var(--hero-glow-a), transparent 24%),
+    radial-gradient(circle at top right, var(--hero-glow-b), transparent 24%),
     linear-gradient(155deg, #f5f8f5 0%, var(--bg) 48%, var(--bg-accent) 100%);
+  transition: background-color 220ms ease, color 220ms ease, background 220ms ease;
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at top left, var(--hero-glow-a), transparent 26%),
+    radial-gradient(circle at top right, var(--hero-glow-b), transparent 24%),
+    linear-gradient(160deg, #06110f 0%, var(--bg) 46%, var(--bg-accent) 100%);
 }
 
 .app-shell {
@@ -110,6 +149,8 @@ body {
   display: flex;
   gap: 10px;
   margin-top: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .top-nav-header {
@@ -135,6 +176,29 @@ body {
   color: white;
 }
 
+:root[data-theme="dark"] .nav-link.current {
+  color: #071412;
+}
+
+.theme-toggle {
+  padding: 9px 14px;
+  border: 1px solid var(--theme-button-border);
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
+    var(--theme-button-bg);
+  color: var(--theme-button-ink);
+  font: inherit;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--theme-button-border));
+}
+
 .hero-status {
   display: grid;
   grid-template-columns: repeat(2, minmax(140px, 1fr));
@@ -152,7 +216,8 @@ body {
 .editor-card,
 .timer-card,
 .json-grid article,
-.timer-config-card {
+.timer-config-card,
+.api-card {
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--panel);
@@ -212,6 +277,12 @@ body {
     conic-gradient(var(--accent) 0 var(--value), rgba(22, 48, 43, 0.1) var(--value) 100%);
 }
 
+:root[data-theme="dark"] .donut-ring {
+  background:
+    radial-gradient(circle, rgba(8, 19, 17, 0.96) 56%, transparent 57%),
+    conic-gradient(var(--accent) 0 var(--value), rgba(231, 244, 239, 0.08) var(--value) 100%);
+}
+
 .donut-ring span {
   font-size: 0.82rem;
   font-weight: 700;
@@ -251,6 +322,22 @@ body {
   backdrop-filter: blur(12px);
   box-shadow: var(--shadow);
   animation: panel-rise 420ms ease both;
+}
+
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .hero,
+:root[data-theme="dark"] .current-event-card,
+:root[data-theme="dark"] .next-event-card,
+:root[data-theme="dark"] .metric-card,
+:root[data-theme="dark"] .status-chip,
+:root[data-theme="dark"] .schedule-item,
+:root[data-theme="dark"] .editor-card,
+:root[data-theme="dark"] .timer-card,
+:root[data-theme="dark"] .timer-config-card,
+:root[data-theme="dark"] .json-grid article,
+:root[data-theme="dark"] .color-config-card,
+:root[data-theme="dark"] .api-card {
+  box-shadow: var(--shadow);
 }
 
 .panel-secondary {
@@ -609,6 +696,12 @@ body {
   animation: panel-rise 520ms ease both;
 }
 
+:root[data-theme="dark"] .current-event-card {
+  background:
+    linear-gradient(135deg, rgba(255, 141, 92, 0.14), transparent 45%),
+    linear-gradient(145deg, rgba(12, 27, 24, 0.94), rgba(17, 36, 32, 0.9));
+}
+
 .current-event-shell {
   display: grid;
   gap: 18px;
@@ -662,6 +755,13 @@ body {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.72);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+:root[data-theme="dark"] .current-event-countdown,
+:root[data-theme="dark"] .next-event-card,
+:root[data-theme="dark"] .metric-card,
+:root[data-theme="dark"] .color-config-card {
+  background: rgba(10, 21, 19, 0.78);
 }
 
 .current-event-countdown-label {
@@ -841,6 +941,15 @@ body {
   font: inherit;
 }
 
+:root[data-theme="dark"] .editor-form input,
+:root[data-theme="dark"] .editor-form select,
+:root[data-theme="dark"] .timer-config-card input,
+:root[data-theme="dark"] .saved-schedule-tools input,
+:root[data-theme="dark"] .saved-schedule-tools select {
+  background: rgba(5, 15, 13, 0.88);
+  color: var(--ink);
+}
+
 .dashboard-config-form {
   display: grid;
   gap: 16px;
@@ -916,14 +1025,60 @@ body {
   color: var(--muted);
 }
 
+.api-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.api-card {
+  padding: 16px 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.08)),
+    var(--panel);
+}
+
+.api-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.api-method {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 62px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.api-card code {
+  font-size: 0.9rem;
+  color: var(--panel-strong);
+}
+
+.api-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 pre {
   margin: 0;
   max-height: 360px;
   overflow: auto;
   padding: 18px;
   border-radius: 18px;
-  background: #18231f;
-  color: #dbe6de;
+  background: var(--code-bg);
+  color: var(--code-ink);
   font-size: 0.85rem;
   line-height: 1.55;
 }

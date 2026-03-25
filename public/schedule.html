@@ -18,6 +18,7 @@
             </p>
           </div>
           <div class="top-nav">
+            <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">Night Mode</button>
             <a class="nav-link" href="/">Dashboard</a>
             <a class="nav-link current" href="/schedule.html">Settings</a>
           </div>
@@ -191,6 +192,115 @@
             <article>
               <h3>schedule.json</h3>
               <pre id="schedule-json"></pre>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel panel-secondary">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">API</p>
+              <h2>外部連携用 API 一覧</h2>
+            </div>
+          </div>
+          <div class="api-list">
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">GET</span>
+                <code>/api/bootstrap</code>
+              </div>
+              <p>現在の状態、スケジュール、進行ログをまとめて取得します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">GET</span>
+                <code>/api/schedule</code>
+              </div>
+              <p>スケジュール配列のみ取得します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">PUT</span>
+                <code>/api/schedule</code>
+              </div>
+              <p><code>{ "schedule": [...] }</code> を送って全スケジュールを更新します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">GET</span>
+                <code>/api/saved-schedules</code>
+              </div>
+              <p>保存済みスケジュール一覧を取得します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/saved-schedules</code>
+              </div>
+              <p><code>{ "name": "...", "schedule": [...] }</code> を送って名前付き保存します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/saved-schedules/load</code>
+              </div>
+              <p><code>{ "name": "..." }</code> を送って保存済みスケジュールを読み込みます。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">PUT</span>
+                <code>/api/timers</code>
+              </div>
+              <p><code>{ "timers": [{ "id": 1, "initialValue": 180 }] }</code> 形式で初期値を更新します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/timer/:id/:action</code>
+              </div>
+              <p>タイマーの <code>start</code> / <code>pause</code> / <code>reset</code> を実行します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">PUT</span>
+                <code>/api/dashboard-config</code>
+              </div>
+              <p>ダッシュボード表示設定を保存します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/offset</code>
+              </div>
+              <p><code>{ "value": 30 }</code> のように秒単位でオフセットを加算します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/resync</code>
+              </div>
+              <p><code>{ "id": "evt_003" }</code> を送って指定イベントへ同期します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/schedule/shift</code>
+              </div>
+              <p><code>{ "action": "previous" }</code> / <code>next</code> / <code>hold</code> を送って進行位置を移動します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">DELETE</span>
+                <code>/api/progress-log</code>
+              </div>
+              <p>進行ログを全消去します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/reset</code>
+              </div>
+              <p>状態、スケジュール、進行ログを初期値へ戻します。</p>
             </article>
           </div>
         </section>

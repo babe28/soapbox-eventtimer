@@ -7,6 +7,7 @@ const editorState = {
   rawState: null,
   savedSchedules: [],
   draggingId: null,
+  theme: 'light',
 };
 
 const editorElements = {
@@ -35,7 +36,25 @@ const editorElements = {
   scheduleJson: document.querySelector('#schedule-json'),
   resetApp: document.querySelector('#reset-app'),
   clearProgressLog: document.querySelector('#clear-progress-log'),
+  themeToggle: document.querySelector('#theme-toggle'),
 };
+
+function applyTheme(theme) {
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  editorState.theme = nextTheme;
+  document.documentElement.dataset.theme = nextTheme;
+  if (editorElements.themeToggle) {
+    editorElements.themeToggle.textContent = nextTheme === 'dark' ? 'Day Mode' : 'Night Mode';
+    editorElements.themeToggle.setAttribute('aria-pressed', String(nextTheme === 'dark'));
+  }
+  window.localStorage.setItem('soapbox-theme', nextTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = window.localStorage.getItem('soapbox-theme');
+  const preferredDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme || (preferredDark ? 'dark' : 'light'));
+}
 
 function toDatetimeLocal(value) {
   const date = new Date(value);
@@ -259,6 +278,12 @@ editorElements.editorList.addEventListener('click', (event) => {
   const card = event.target.closest('[data-entry-id]');
   if (card) {
     selectEntry(card.dataset.entryId);
+  }
+});
+
+document.addEventListener('click', (event) => {
+  if (event.target.closest('#theme-toggle')) {
+    applyTheme(editorState.theme === 'dark' ? 'light' : 'dark');
   }
 });
 
@@ -525,3 +550,4 @@ editorElements.clearProgressLog.addEventListener('click', async () => {
 });
 
 loadSchedule();
+initializeTheme();

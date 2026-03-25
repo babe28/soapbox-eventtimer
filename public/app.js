@@ -6,6 +6,7 @@ const state = {
   },
   ui: {
     previewIndex: null,
+    theme: 'light',
   },
 };
 
@@ -28,7 +29,25 @@ const elements = {
   finalEndDonut: document.querySelector('#final-end-donut'),
   finalEndValue: document.querySelector('#final-end-value'),
   finalEndLabel: document.querySelector('#final-end-label'),
+  themeToggle: document.querySelector('#theme-toggle'),
 };
+
+function applyTheme(theme) {
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  state.ui.theme = nextTheme;
+  document.documentElement.dataset.theme = nextTheme;
+  if (elements.themeToggle) {
+    elements.themeToggle.textContent = nextTheme === 'dark' ? 'Day Mode' : 'Night Mode';
+    elements.themeToggle.setAttribute('aria-pressed', String(nextTheme === 'dark'));
+  }
+  window.localStorage.setItem('soapbox-theme', nextTheme);
+}
+
+function initializeTheme() {
+  const savedTheme = window.localStorage.getItem('soapbox-theme');
+  const preferredDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme || (preferredDark ? 'dark' : 'light'));
+}
 
 function getDashboardConfig() {
   return state.payload.state?.dashboardConfig ?? {
@@ -70,7 +89,7 @@ function formatOffsetLabel(seconds) {
   const minuteText = minutes > 0 ? `${minutes}分` : '';
   const secondText = remainSeconds > 0 ? `${remainSeconds}秒` : '';
   const deltaText = `${minuteText}${secondText}` || '0秒';
-  return seconds > 0 ? `${deltaText}遅れ` : `${deltaText}巻き`;
+  return seconds > 0 ? `${deltaText}巻き` : `${deltaText}押し`;
 }
 
 function setDonutValue(element, percent) {
@@ -396,6 +415,11 @@ socket.on('sync_state', (payload) => {
 });
 
 document.addEventListener('click', async (event) => {
+  if (event.target.closest('#theme-toggle')) {
+    applyTheme(state.ui.theme === 'dark' ? 'light' : 'dark');
+    return;
+  }
+
   const offsetButton = event.target.closest('[data-offset]');
   if (offsetButton) {
     state.ui.previewIndex = null;
@@ -473,4 +497,5 @@ setInterval(() => {
   updateLiveView();
 }, 1000);
 
+initializeTheme();
 bootstrap();
