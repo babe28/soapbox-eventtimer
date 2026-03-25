@@ -6,6 +6,7 @@ const editorState = {
   dirty: false,
   rawState: null,
   savedSchedules: [],
+  draggingId: null,
 };
 
 const editorElements = {
@@ -84,6 +85,34 @@ function getSelectedEntry() {
   return editorState.schedule.find((item) => item.id === editorState.selectedId) || null;
 }
 
+function getEntryIndexById(id) {
+  return editorState.schedule.findIndex((item) => item.id === id);
+}
+
+function insertEntryAt(entry, index) {
+  const safeIndex = Math.max(0, Math.min(index, editorState.schedule.length));
+  editorState.schedule.splice(safeIndex, 0, entry);
+}
+
+function moveEntry(draggingId, targetId) {
+  if (!draggingId || !targetId || draggingId === targetId) return false;
+
+  const fromIndex = getEntryIndexById(draggingId);
+  const targetIndex = getEntryIndexById(targetId);
+  if (fromIndex < 0 || targetIndex < 0) return false;
+
+  const [movedEntry] = editorState.schedule.splice(fromIndex, 1);
+  editorState.schedule.splice(targetIndex, 0, movedEntry);
+  return true;
+}
+
+function clearDragState() {
+  editorState.draggingId = null;
+  editorElements.editorList
+    .querySelectorAll('.editor-card')
+    .forEach((card) => card.classList.remove('is-dragging', 'drag-over'));
+}
+
 function getDashboardConfig() {
   return editorState.rawState?.dashboardConfig ?? {
     showPerEventSyncButtons: false,
@@ -95,7 +124,11 @@ function renderList() {
   editorElements.entryCount.textContent = String(editorState.schedule.length);
   editorElements.editorList.innerHTML = editorState.schedule
     .map((item) => `
-      <article class="editor-card ${item.id === editorState.selectedId ? 'is-current' : ''}" data-entry-id="${item.id}">
+      <article
+        class="editor-card ${item.id === editorState.selectedId ? 'is-current' : ''}"
+        data-entry-id="${item.id}"
+        draggable="true"
+      >
         <div>
           <h3>${item.title}</h3>
           <p>${item.subTitle || 'サブタイトルなし'}</p>
@@ -229,6 +262,58 @@ editorElements.editorList.addEventListener('click', (event) => {
   }
 });
 
+editorElements.editorList.addEventListener('dragstart', (event) => {
+  const card = event.target.closest('[data-entry-id]');
+  if (!card) return;
+
+  editorState.draggingId = card.dataset.entryId;
+  card.classList.add('is-dragging');
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', editorState.draggingId);
+  }
+});
+
+editorElements.editorList.addEventListener('dragover', (event) => {
+  const card = event.target.closest('[data-entry-id]');
+  if (!card || card.dataset.entryId === editorState.draggingId) return;
+
+  event.preventDefault();
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  editorElements.editorList
+    .querySelectorAll('.editor-card.drag-over')
+    .forEach((node) => node.classList.remove('drag-over'));
+  card.classList.add('drag-over');
+});
+
+editorElements.editorList.addEventListener('dragleave', (event) => {
+  const card = event.target.closest('[data-entry-id]');
+  if (card) {
+    card.classList.remove('drag-over');
+  }
+});
+
+editorElements.editorList.addEventListener('drop', (event) => {
+  const card = event.target.closest('[data-entry-id]');
+  if (!card) return;
+
+  event.preventDefault();
+  const moved = moveEntry(editorState.draggingId, card.dataset.entryId);
+  clearDragState();
+  if (!moved) return;
+
+  markDirty(true);
+  renderAll();
+  setStatus('スケジュール順を更新しました');
+});
+
+editorElements.editorList.addEventListener('dragend', () => {
+  clearDragState();
+});
+
 editorElements.addEntry.addEventListener('click', () => {
   const start = new Date();
   start.setMinutes(start.getMinutes() + 5);
@@ -244,7 +329,8 @@ editorElements.addEntry.addEventListener('click', () => {
     type: 'normal',
   };
 
-  editorState.schedule.push(entry);
+  const selectedIndex = getEntryIndexById(editorState.selectedId);
+  insertEntryAt(entry, selectedIndex >= 0 ? selectedIndex + 1 : editorState.schedule.length);
   selectEntry(entry.id);
   markDirty(true);
 });
@@ -287,7 +373,8 @@ editorElements.duplicateEntry.addEventListener('click', () => {
     title: `${entry.title} 複製`,
   };
 
-  editorState.schedule.push(copy);
+  const sourceIndex = getEntryIndexById(entry.id);
+  insertEntryAt(copy, sourceIndex >= 0 ? sourceIndex + 1 : editorState.schedule.length);
   selectEntry(copy.id);
   markDirty(true);
 });
@@ -421,8 +508,14 @@ editorElements.saveDashboard.addEventListener('click', async () => {
 });
 
 editorElements.resetApp.addEventListener('click', async () => {
+  const confirmed = window.confirm(
+    '進行状態、タイマー、スケジュール表示位置を初期値に戻します。続けますか？'
+  );
+  if (!confirmed) return;
+
   await fetch('/api/reset', { method: 'POST' });
   await loadSchedule();
+  setStatus('状態を初期値に戻しました');
 });
 
 editorElements.clearProgressLog.addEventListener('click', async () => {
