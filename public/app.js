@@ -18,7 +18,6 @@ const elements = {
   offsetSeconds: document.querySelector('#offset-seconds'),
   offsetStatus: document.querySelector('#offset-status'),
   progressDiff: document.querySelector('#progress-diff'),
-  currentSchedule: document.querySelector('#current-schedule'),
   resetOffset: document.querySelector('#reset-offset'),
   currentEvent: document.querySelector('#current-event'),
   scheduleList: document.querySelector('#schedule-list'),
@@ -58,20 +57,20 @@ function formatSeconds(totalSeconds) {
 }
 
 function formatTimerStatus(status) {
-  if (status === 'running') return '動作中';
-  if (status === 'paused') return '一時停止';
-  return '停止中';
+  if (status === 'running') return '蜍穂ｽ應ｸｭ';
+  if (status === 'paused') return '荳譎ょ●豁｢';
+  return '蛛懈ｭ｢荳ｭ';
 }
 
 function formatOffsetLabel(seconds) {
-  if (seconds === 0) return '定刻';
+  if (seconds === 0) return '螳壼綾';
   const absSeconds = Math.abs(seconds);
   const minutes = Math.floor(absSeconds / 60);
   const remainSeconds = absSeconds % 60;
-  const minuteText = minutes > 0 ? `${minutes}分` : '';
-  const secondText = remainSeconds > 0 ? `${remainSeconds}秒` : '';
-  const deltaText = `${minuteText}${secondText}` || '0秒';
-  return seconds > 0 ? `${deltaText}巻き` : `${deltaText}押し`;
+  const minuteText = minutes > 0 ? `${minutes}蛻・` : '';
+  const secondText = remainSeconds > 0 ? `${remainSeconds}遘・` : '';
+  const deltaText = `${minuteText}${secondText}` || '0遘・';
+  return seconds > 0 ? `${deltaText}蟾ｻ縺・` : `${deltaText}謚ｼ縺・`;
 }
 
 function setDonutValue(element, percent) {
@@ -122,11 +121,6 @@ function renderOverview() {
   const offsetLabel = formatOffsetLabel(currentState.globalOffsetSeconds);
   elements.offsetStatus.textContent = offsetLabel;
   elements.progressDiff.textContent = offsetLabel;
-  const activeIndex = getActiveIndex();
-  const activeItem = activeIndex >= 0 ? state.payload.schedule[activeIndex] : null;
-  elements.currentSchedule.textContent = activeItem
-    ? `${activeItem.title} / ${activeItem.section}`
-    : '待機中';
 }
 
 function renderHeaderStats() {
@@ -169,11 +163,11 @@ function renderCurrentEvent() {
   if (!currentItem) {
     elements.currentEvent.innerHTML = `
       <div class="current-event-fallback">
-        <p class="empty-state">進行中のイベントはありません。</p>
+        <p class="empty-state">騾ｲ陦御ｸｭ縺ｮ繧､繝吶Φ繝医・縺ゅｊ縺ｾ縺帙ｓ縲・</p>
         <div class="next-event-card">
-          <span>次の予定</span>
-          <strong>${nextRealItem ? nextRealItem.title : '予定なし'}</strong>
-          <p>${nextRealItem ? `開始まで ${formatSeconds(Math.floor((new Date(nextRealItem.start).getTime() - displayedNow) / 1000))}` : 'スケジュールに次の予定がありません。'}</p>
+          <span>谺｡縺ｮ莠亥ｮ・</span>
+          <strong>${nextRealItem ? nextRealItem.title : '莠亥ｮ壹↑縺・'}</strong>
+          <p>${nextRealItem ? `髢句ｧ九∪縺ｧ ${formatSeconds(Math.floor((new Date(nextRealItem.start).getTime() - displayedNow) / 1000))}` : '繧ｹ繧ｱ繧ｸ繝･繝ｼ繝ｫ縺ｫ谺｡縺ｮ莠亥ｮ壹′縺ゅｊ縺ｾ縺帙ｓ縲・'}</p>
         </div>
       </div>
     `;
@@ -197,7 +191,7 @@ function renderCurrentEvent() {
       <div>
         <p class="current-event-section">${currentItem.section}</p>
         <h3>${currentItem.title}</h3>
-        <p class="current-event-subtitle">${currentItem.subTitle || 'サブタイトルなし'}</p>
+        <p class="current-event-subtitle">${currentItem.subTitle || '繧ｵ繝悶ち繧､繝医Ν縺ｪ縺・'}</p>
       </div>
       <div class="current-event-clock">
         <span>${formatClock(start)} - ${formatClock(end)}</span>
@@ -205,22 +199,22 @@ function renderCurrentEvent() {
       </div>
     </div>
     <div class="progress-meta">
-      <span>${isPreviewing ? 'プレビュー表示' : `経過 ${formatSeconds(elapsed)}`}</span>
-      <span>${isPreviewing ? 'オフセット変更なし' : `進行率 ${Math.round(progress)}%`}</span>
+      <span>${isPreviewing ? '繝励Ξ繝薙Η繝ｼ陦ｨ遉ｺ' : `邨碁℃ ${formatSeconds(elapsed)}`}</span>
+      <span>${isPreviewing ? '繧ｪ繝輔そ繝・ヨ螟画峩縺ｪ縺・' : `騾ｲ陦檎紫 ${Math.round(progress)}%`}</span>
     </div>
     <div class="progress-bar" aria-hidden="true">
       <span style="width: ${progress}%"></span>
     </div>
     <div class="next-event-card">
-      <span>次の予定</span>
-      <strong>${nextItem ? nextItem.title : '次の予定なし'}</strong>
-      <p>${nextItem ? `${formatClock(new Date(nextItem.start).getTime())} 開始 / あと ${formatSeconds(nextCountdown)}` : 'この後の予定は登録されていません。'}</p>
+      <span>谺｡縺ｮ莠亥ｮ・</span>
+      <strong>${nextItem ? nextItem.title : '谺｡縺ｮ莠亥ｮ壹↑縺・'}</strong>
+      <p>${nextItem ? `${formatClock(new Date(nextItem.start).getTime())} 髢句ｧ・/ 縺ゅ→ ${formatSeconds(nextCountdown)}` : '縺薙・蠕後・莠亥ｮ壹・逋ｻ骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ縲・'}</p>
     </div>
     <div class="event-shift-actions">
-      <button class="ghost-button" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>戻す</button>
-      <button class="ghost-button" data-preview-action="next" ${nextItem ? '' : 'disabled'}>次へ</button>
-      <button class="force-button" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>戻す（強制）</button>
-      <button class="force-button" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>次へ（強制）</button>
+      <button class="ghost-button" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>謌ｻ縺・</button>
+      <button class="ghost-button" data-preview-action="next" ${nextItem ? '' : 'disabled'}>谺｡縺ｸ</button>
+      <button class="force-button" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>謌ｻ縺呻ｼ亥ｼｷ蛻ｶ・・</button>
+      <button class="force-button" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>谺｡縺ｸ・亥ｼｷ蛻ｶ・・</button>
     </div>
   `;
 }
@@ -238,10 +232,10 @@ function renderSchedule() {
       const isDone = displayedNow >= end;
       const isUpcoming = displayedNow < start;
       const status = isUpcoming
-        ? `開始まで ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
+        ? `髢句ｧ九∪縺ｧ ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
         : isDone
-          ? '終了済み'
-          : '進行中';
+          ? '邨ゆｺ・ｸ医∩'
+          : '騾ｲ陦御ｸｭ';
       const typeColor = dashboardConfig.eventTypeColors[item.type] || dashboardConfig.eventTypeColors.normal;
 
       return `
@@ -251,14 +245,14 @@ function renderSchedule() {
               <span class="schedule-type-accent" aria-hidden="true"></span>
               <h3>${item.title}</h3>
             </div>
-            <p class="schedule-subtitle">${item.subTitle || 'サブタイトルなし'}</p>
+            <p class="schedule-subtitle">${item.subTitle || '繧ｵ繝悶ち繧､繝医Ν縺ｪ縺・'}</p>
             <span class="schedule-meta">${item.section} / ${item.type}</span>
           </div>
           <div class="schedule-side">
             <strong>${formatClock(start)}-${formatClock(end)}</strong>
             <span class="schedule-meta">(${formatSeconds(item.duration)})</span>
             <span class="schedule-badge ${isCurrent ? 'is-live' : isDone ? 'is-done' : 'is-upcoming'}">${status}</span>
-            ${dashboardConfig.showPerEventSyncButtons ? `<button class="force-button schedule-sync-button" data-resync="${item.id}">ここに同期</button>` : ''}
+            ${dashboardConfig.showPerEventSyncButtons ? `<button class="force-button schedule-sync-button" data-resync="${item.id}">縺薙％縺ｫ蜷梧悄</button>` : ''}
           </div>
         </article>
       `;
@@ -275,12 +269,12 @@ function getLiveTimerValue(timer) {
 function renderTimers() {
   const timers = state.payload.state?.timers ?? [];
   elements.timerList.innerHTML = timers
-    .map((timer) => `
-      <article class="timer-card">
-        <span class="timer-meta">${timer.mode === 'up' ? 'カウントアップ' : 'カウントダウン'} / ${formatTimerStatus(timer.status)}</span>
+    .map((timer, index) => `
+      <article class="timer-card timer-card-animated" style="--enter-delay: ${index * 90}ms">
+        <span class="timer-meta">${timer.mode === 'up' ? '繧ｫ繧ｦ繝ｳ繝医い繝・・' : '繧ｫ繧ｦ繝ｳ繝医ム繧ｦ繝ｳ'} · ${formatTimerStatus(timer.status)}</span>
         <h3>${timer.label}</h3>
         <p class="timer-value">${formatSeconds(getLiveTimerValue(timer))}</p>
-        <p>初期値: ${formatSeconds(timer.initialValue)}</p>
+        <p class="timer-initial">蛻晄悄 ${formatSeconds(timer.initialValue)}</p>
         <div class="timer-actions">
           <button data-timer="${timer.id}" data-action="start">Start</button>
           <button data-timer="${timer.id}" data-action="pause">Pause</button>
@@ -346,7 +340,7 @@ document.addEventListener('click', async (event) => {
       return;
     }
 
-    if (!window.confirm('グローバルオフセットを 0 秒に戻しますか？')) {
+    if (!window.confirm('繧ｰ繝ｭ繝ｼ繝舌Ν繧ｪ繝輔そ繝・ヨ繧・0 遘偵↓謌ｻ縺励∪縺吶°・・)) {
       return;
     }
 

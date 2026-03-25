@@ -8,10 +8,12 @@
   --line: rgba(22, 48, 43, 0.12);
   --accent: #b14d1d;
   --accent-soft: rgba(177, 77, 29, 0.12);
+  --accent-glow: rgba(177, 77, 29, 0.26);
   --success: #1d6b48;
   --warning: #b07300;
   --danger: #8a2d21;
   --shadow: 0 18px 60px rgba(18, 35, 31, 0.12);
+  --shadow-soft: 0 22px 45px rgba(18, 35, 31, 0.08);
 }
 
 * {
@@ -26,7 +28,8 @@ body {
   background:
     radial-gradient(circle at top left, rgba(177, 77, 29, 0.18), transparent 28%),
     radial-gradient(circle at top right, rgba(29, 107, 72, 0.16), transparent 24%),
-    linear-gradient(160deg, var(--bg), #faf6ee 52%, var(--bg-accent));
+    linear-gradient(160deg, #f7f2e9, #faf6ee 38%, #edf4ef 100%);
+  background-attachment: fixed;
 }
 
 .app-shell {
@@ -48,8 +51,11 @@ body {
   padding: 28px;
   border: 1px solid var(--line);
   border-radius: 28px;
-  background: linear-gradient(145deg, rgba(255, 250, 242, 0.95), rgba(230, 240, 232, 0.86));
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 52%),
+    linear-gradient(145deg, rgba(255, 250, 242, 0.95), rgba(230, 240, 232, 0.86));
   box-shadow: var(--shadow);
+  animation: fade-slide-up 560ms ease both;
 }
 
 .hero-compact {
@@ -221,7 +227,7 @@ body {
 
 .dashboard-stage {
   display: grid;
-  grid-template-columns: minmax(280px, 320px) minmax(540px, 1.15fr) minmax(320px, 0.82fr);
+  grid-template-columns: minmax(248px, 286px) minmax(560px, 1.24fr) minmax(390px, 0.98fr);
   grid-template-areas:
     "control feature timeline"
     "timers feature timeline";
@@ -237,7 +243,15 @@ body {
   border-radius: 28px;
   background: rgba(255, 252, 247, 0.74);
   backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-soft);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  animation: fade-slide-up 620ms ease both;
+}
+
+.panel:hover {
+  transform: translateY(-2px);
   box-shadow: var(--shadow);
+  border-color: rgba(22, 48, 43, 0.18);
 }
 
 .panel-secondary {
@@ -265,6 +279,12 @@ body {
 
 .panel-timers {
   grid-area: timers;
+  align-self: start;
+  padding-top: 12px;
+}
+
+.panel-timers .panel-head {
+  display: none;
 }
 
 .panel-head {
@@ -310,8 +330,25 @@ body {
   gap: 10px;
 }
 
+.overview-metrics .metric-card:nth-child(2) {
+  display: none;
+}
+
 .metric-card {
   padding: 14px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.metric-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -20% -55% auto;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(177, 77, 29, 0.08), transparent 68%);
+  pointer-events: none;
 }
 
 .offset-controls {
@@ -375,6 +412,7 @@ body {
 .editor-card.is-current {
   outline: 2px solid var(--accent);
   background: linear-gradient(145deg, rgba(255, 247, 241, 0.96), rgba(255, 252, 247, 0.96));
+  box-shadow: 0 14px 34px rgba(177, 77, 29, 0.12);
 }
 
 .schedule-item h3,
@@ -448,26 +486,66 @@ body {
 
 .timer-list {
   grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .timer-card {
-  padding: 14px;
+  position: relative;
+  padding: 12px 12px 10px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
+  overflow: hidden;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(177, 77, 29, 0.08), transparent 50%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 251, 248, 0.9));
+  box-shadow: 0 12px 28px rgba(18, 35, 31, 0.08);
+}
+
+.timer-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent), #d58655);
+  opacity: 0.92;
+}
+
+.timer-card-animated {
+  animation: timer-pop 500ms cubic-bezier(.2,.8,.2,1) both;
+  animation-delay: var(--enter-delay, 0ms);
 }
 
 .timer-value {
   margin: 4px 0 0;
-  font-size: 1.6rem;
+  font-size: clamp(1.8rem, 2vw, 2.25rem);
   font-weight: 700;
   line-height: 1;
+  letter-spacing: 0.03em;
+  color: var(--panel-strong);
 }
 
 .timer-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
   margin-top: 4px;
+}
+
+.timer-initial {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.timer-meta {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.timer-card h3 {
+  font-size: 1.05rem;
+  line-height: 1.15;
 }
 
 .timer-actions button[data-action="pause"] {
@@ -493,6 +571,19 @@ body {
     linear-gradient(135deg, rgba(177, 77, 29, 0.12), transparent 45%),
     linear-gradient(145deg, rgba(255, 250, 242, 0.96), rgba(230, 240, 232, 0.88));
   box-shadow: 0 10px 30px rgba(18, 35, 31, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.current-event-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -8% -18% auto;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow), transparent 70%);
+  pointer-events: none;
 }
 
 .current-event-head {
@@ -551,6 +642,7 @@ body {
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, var(--accent), #d58655);
+  transition: width 280ms ease;
 }
 
 .next-event-card {
@@ -560,6 +652,12 @@ body {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.58);
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.next-event-card:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .next-event-card span {
@@ -750,6 +848,40 @@ pre {
   color: #dbe6de;
   font-size: 0.85rem;
   line-height: 1.55;
+}
+
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes timer-pop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @media (max-width: 960px) {
