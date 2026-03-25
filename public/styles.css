@@ -231,7 +231,7 @@ body {
 
 .dashboard-stage {
   display: grid;
-  grid-template-columns: minmax(250px, 280px) minmax(560px, 1.18fr) minmax(390px, 0.96fr);
+  grid-template-columns: minmax(238px, 266px) minmax(640px, 1.34fr) minmax(360px, 0.9fr);
   grid-template-areas:
     "control feature timeline"
     "timers feature timeline";
@@ -267,6 +267,7 @@ body {
 
 .panel-feature {
   grid-area: feature;
+  padding: 24px 24px 22px;
 }
 
 .panel-timeline {
@@ -534,6 +535,11 @@ body {
   animation-delay: var(--enter-delay, 0ms);
 }
 
+.timer-card h3 {
+  font-size: 1.02rem;
+  line-height: 1.15;
+}
+
 .timer-value {
   margin: 4px 0 0;
   font-size: clamp(1.8rem, 2vw, 2.2rem);
@@ -568,11 +574,11 @@ body {
 
 .current-event-card {
   display: grid;
-  gap: 14px;
+  gap: 18px;
   min-height: 100%;
-  padding: 22px;
+  padding: 26px;
   border: 1px solid var(--line);
-  border-radius: 24px;
+  border-radius: 28px;
   background:
     linear-gradient(135deg, rgba(214, 101, 58, 0.12), transparent 45%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(237, 244, 239, 0.88));
@@ -580,11 +586,33 @@ body {
   animation: panel-rise 520ms ease both;
 }
 
-.current-event-head {
+.current-event-shell {
   display: grid;
-  grid-template-columns: 1fr auto;
   gap: 18px;
-  align-items: start;
+}
+
+.current-event-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.current-event-window {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.current-event-mainline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 260px);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.current-event-copy {
+  min-width: 0;
 }
 
 .current-event-section,
@@ -596,25 +624,34 @@ body {
 }
 
 .current-event-card h3 {
-  margin: 6px 0 8px;
-  font-size: clamp(2rem, 3vw, 3.2rem);
-  line-height: 1.1;
+  margin: 0 0 10px;
+  font-size: clamp(2.3rem, 3.3vw, 3.6rem);
+  line-height: 1.02;
 }
 
-.current-event-clock {
+.current-event-countdown {
   display: grid;
-  gap: 8px;
-  text-align: right;
+  gap: 10px;
+  align-content: center;
+  justify-items: center;
+  padding: 18px 16px;
+  border: 1px solid rgba(24, 54, 48, 0.1);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-.current-event-clock span {
+.current-event-countdown-label {
   color: var(--muted);
-  font-size: 0.9rem;
+  font-size: 0.84rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.current-event-clock strong {
-  font-size: clamp(2rem, 4vw, 3.4rem);
+.current-event-countdown strong {
+  font-size: clamp(2.2rem, 3.4vw, 3.2rem);
   line-height: 1;
+  color: var(--panel-strong);
 }
 
 .progress-meta {
@@ -674,6 +711,30 @@ body {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.event-shift-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.shift-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.shift-button-neutral {
+  background: rgba(24, 54, 48, 0.08);
+  color: var(--panel-strong);
+}
+
+.shift-button-prev {
+  background: #2d6aa3;
+}
+
+.shift-button-next {
+  background: var(--accent);
 }
 
 .event-shift-actions button[disabled] {
@@ -880,7 +941,6 @@ pre {
 @media (max-width: 960px) {
   .hero,
   .panel-head,
-  .current-event-head,
   .schedule-item,
   .editor-card {
     grid-template-columns: 1fr;
@@ -922,11 +982,13 @@ pre {
     min-width: 0;
   }
 
-  .current-event-clock {
-    text-align: left;
-  }
-
   .timer-config-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1180px) {
+  .current-event-mainline {
     grid-template-columns: 1fr;
   }
 }

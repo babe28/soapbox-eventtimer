@@ -100,9 +100,7 @@ function getCurrentIndex() {
     return displayedNow >= start && displayedNow < end;
   });
 
-  if (liveIndex >= 0) {
-    return liveIndex;
-  }
+  if (liveIndex >= 0) return liveIndex;
 
   const currentId = state.payload.state?.currentScheduleId;
   return state.payload.schedule.findIndex((item) => item.id === currentId);
@@ -177,50 +175,85 @@ function renderCurrentEvent() {
   const start = new Date(currentItem.start).getTime();
   const end = start + currentItem.duration * 1000;
   const isPreviewing = state.ui.previewIndex != null && activeIndex !== actualCurrentIndex;
-  const elapsed = isPreviewing ? 0 : Math.max(0, Math.floor((displayedNow - start) / 1000));
-  const remaining = isPreviewing ? currentItem.duration : Math.max(0, Math.floor((end - displayedNow) / 1000));
-  const progress = isPreviewing ? 0 : Math.min(100, Math.max(0, (elapsed / currentItem.duration) * 100));
   const previousItem = activeIndex > 0 ? state.payload.schedule[activeIndex - 1] : null;
   const nextItem = state.payload.schedule[activeIndex + 1] ?? null;
-  const nextCountdown = nextItem
-    ? Math.max(0, Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000))
-    : null;
 
   elements.currentEvent.innerHTML = `
-    <div class="current-event-head">
-      <div>
+    <div class="current-event-shell ${isPreviewing ? 'is-previewing' : ''}" data-current-start="${start}" data-current-end="${end}" data-current-duration="${currentItem.duration}">
+      <div class="current-event-topline">
         <p class="current-event-section">${currentItem.section}</p>
-        <h3>${currentItem.title}</h3>
-        <p class="current-event-subtitle">${currentItem.subTitle || '\u30B5\u30D6\u30BF\u30A4\u30C8\u30EB\u306A\u3057'}</p>
+        <span class="current-event-window">${formatClock(start)} - ${formatClock(end)}</span>
       </div>
-      <div class="current-event-clock">
-        <span>${formatClock(start)} - ${formatClock(end)}</span>
-        <strong>${formatSeconds(remaining)}</strong>
+      <div class="current-event-mainline">
+        <div class="current-event-copy">
+          <h3>${currentItem.title}</h3>
+          <p class="current-event-subtitle">${currentItem.subTitle || '\u30B5\u30D6\u30BF\u30A4\u30C8\u30EB\u306A\u3057'}</p>
+        </div>
+        <div class="current-event-countdown">
+          <span class="current-event-countdown-label">${isPreviewing ? '\u30D7\u30EC;&#12499;&#12517;&#12540;' : '\u6B8B\u308A\u6642\u9593'}</span>
+          <strong data-current-remaining>00:00:00</strong>
+        </div>
       </div>
-    </div>
-    <div class="progress-meta">
-      <span>${isPreviewing ? '\u30D7\u30EC\u30D3\u30E5\u30FC\u8868\u793A' : `\u7D4C\u904E ${formatSeconds(elapsed)}`}</span>
-      <span>${isPreviewing ? '\u30AA\u30D5\u30BB\u30C3\u30C8\u53CD\u6620\u306A\u3057' : `\u9032\u884C\u7387 ${Math.round(progress)}%`}</span>
-    </div>
-    <div class="progress-bar" aria-hidden="true">
-      <span style="width: ${progress}%"></span>
-    </div>
-    <div class="next-event-card">
-      <span>\u6B21\u306E\u958B\u59CB</span>
-      <strong>${nextItem ? nextItem.title : '\u6B21\u306E\u4E88\u5B9A\u306A\u3057'}</strong>
-      <p>${nextItem ? `${formatClock(new Date(nextItem.start).getTime())} \u958B\u59CB / \u3042\u3068 ${formatSeconds(nextCountdown)}` : '\u3053\u306E\u5F8C\u306E\u4E88\u5B9A\u306F\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002'}</p>
-    </div>
-    <div class="event-shift-actions">
-      <button class="ghost-button" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>\u623B\u3059</button>
-      <button class="ghost-button" data-preview-action="next" ${nextItem ? '' : 'disabled'}>\u6B21\u3078</button>
-      <button class="force-button" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>\u623B\u3059\uff08\u5F37\u5236\uff09</button>
-      <button class="force-button" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>\u6B21\u3078\uff08\u5F37\u5236\uff09</button>
+      <div class="progress-meta">
+        <span data-current-left>${isPreviewing ? '\u30D7\u30EC\u30D3\u30E5\u30FC\u8868\u793A' : ''}</span>
+        <span data-current-right>${isPreviewing ? '\u30AA\u30D5\u30BB\u30C3\u30C8\u53CD\u6620\u306A\u3057' : ''}</span>
+      </div>
+      <div class="progress-bar" aria-hidden="true">
+        <span data-current-progress></span>
+      </div>
+      <div class="next-event-card">
+        <span>\u6B21\u306E\u958B\u59CB</span>
+        <strong>${nextItem ? nextItem.title : '\u6B21\u306E\u4E88\u5B9A\u306A\u3057'}</strong>
+        <p data-next-countdown>${nextItem ? '' : '\u3053\u306E\u5F8C\u306E\u4E88\u5B9A\u306F\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002'}</p>
+      </div>
+      <div class="event-shift-actions event-shift-grid">
+        <button class="ghost-button shift-button shift-button-neutral" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>\u623B\u3059</button>
+        <button class="ghost-button shift-button shift-button-neutral" data-preview-action="next" ${nextItem ? '' : 'disabled'}>\u6B21\u3078</button>
+        <button class="force-button shift-button shift-button-prev" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>\u623B\u3059\uff08\u5F37\u5236\uff09</button>
+        <button class="force-button shift-button shift-button-next" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>\u6B21\u3078\uff08\u5F37\u5236\uff09</button>
+      </div>
     </div>
   `;
+
+  updateCurrentEventLive();
+}
+
+function updateCurrentEventLive() {
+  const shell = elements.currentEvent.querySelector('[data-current-start]');
+  if (!shell) return;
+
+  const displayedNow = getDisplayedNow();
+  const activeIndex = getActiveIndex();
+  const actualCurrentIndex = getCurrentIndex();
+  const isPreviewing = state.ui.previewIndex != null && activeIndex !== actualCurrentIndex;
+  const duration = Number(shell.dataset.currentDuration || 0);
+  const start = Number(shell.dataset.currentStart || 0);
+  const end = Number(shell.dataset.currentEnd || 0);
+  const nextItem = state.payload.schedule[activeIndex + 1] ?? null;
+
+  const elapsed = isPreviewing ? 0 : Math.max(0, Math.floor((displayedNow - start) / 1000));
+  const remaining = isPreviewing ? duration : Math.max(0, Math.floor((end - displayedNow) / 1000));
+  const progress = isPreviewing || duration <= 0 ? 0 : Math.min(100, Math.max(0, (elapsed / duration) * 100));
+
+  const remainingNode = shell.querySelector('[data-current-remaining]');
+  const leftNode = shell.querySelector('[data-current-left]');
+  const rightNode = shell.querySelector('[data-current-right]');
+  const progressNode = shell.querySelector('[data-current-progress]');
+  const nextCountdownNode = shell.querySelector('[data-next-countdown]');
+
+  if (remainingNode) remainingNode.textContent = formatSeconds(remaining);
+  if (leftNode) leftNode.textContent = isPreviewing ? '\u30D7\u30EC\u30D3\u30E5\u30FC\u8868\u793A' : `\u7D4C\u904E ${formatSeconds(elapsed)}`;
+  if (rightNode) rightNode.textContent = isPreviewing ? '\u30AA\u30D5\u30BB\u30C3\u30C8\u53CD\u6620\u306A\u3057' : `\u9032\u884C\u7387 ${Math.round(progress)}%`;
+  if (progressNode) progressNode.style.width = `${progress}%`;
+
+  if (nextCountdownNode) {
+    nextCountdownNode.textContent = nextItem
+      ? `${formatClock(new Date(nextItem.start).getTime())} \u958B\u59CB / \u3042\u3068 ${formatSeconds(Math.max(0, Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000)))}`
+      : '\u3053\u306E\u5F8C\u306E\u4E88\u5B9A\u306F\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002';
+  }
 }
 
 function renderSchedule() {
-  const displayedNow = getDisplayedNow();
   const activeIndex = getActiveIndex();
   const dashboardConfig = getDashboardConfig();
 
@@ -229,17 +262,10 @@ function renderSchedule() {
       const start = new Date(item.start).getTime();
       const end = start + item.duration * 1000;
       const isCurrent = activeIndex === index;
-      const isDone = displayedNow >= end;
-      const isUpcoming = displayedNow < start;
-      const status = isUpcoming
-        ? `\u958B\u59CB\u307E\u3067 ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
-        : isDone
-          ? '\u5B8C\u4E86\u6E08\u307F'
-          : '\u9032\u884C\u4E2D';
       const typeColor = dashboardConfig.eventTypeColors[item.type] || dashboardConfig.eventTypeColors.normal;
 
       return `
-        <article class="schedule-item ${isCurrent ? 'is-current' : ''}" style="--type-color: ${typeColor}">
+        <article class="schedule-item ${isCurrent ? 'is-current' : ''}" style="--type-color: ${typeColor}" data-schedule-item data-start="${start}" data-end="${end}" data-item-id="${item.id}">
           <div class="schedule-main">
             <div class="schedule-title-row">
               <span class="schedule-type-accent" aria-hidden="true"></span>
@@ -251,13 +277,39 @@ function renderSchedule() {
           <div class="schedule-side">
             <strong>${formatClock(start)}-${formatClock(end)}</strong>
             <span class="schedule-meta">(${formatSeconds(item.duration)})</span>
-            <span class="schedule-badge ${isCurrent ? 'is-live' : isDone ? 'is-done' : 'is-upcoming'}">${status}</span>
+            <span class="schedule-badge" data-schedule-badge></span>
             ${dashboardConfig.showPerEventSyncButtons ? `<button class="force-button schedule-sync-button" data-resync="${item.id}">\u3053\u3053\u306B\u540C\u671F</button>` : ''}
           </div>
         </article>
       `;
     })
     .join('');
+
+  updateScheduleLive();
+}
+
+function updateScheduleLive() {
+  const displayedNow = getDisplayedNow();
+  const activeIndex = getActiveIndex();
+
+  elements.scheduleList.querySelectorAll('[data-schedule-item]').forEach((node, index) => {
+    const start = Number(node.dataset.start || 0);
+    const end = Number(node.dataset.end || 0);
+    const badge = node.querySelector('[data-schedule-badge]');
+    const isCurrent = index === activeIndex;
+    const isDone = displayedNow >= end;
+    const isUpcoming = displayedNow < start;
+
+    node.classList.toggle('is-current', isCurrent);
+
+    if (!badge) return;
+    badge.className = `schedule-badge ${isCurrent ? 'is-live' : isDone ? 'is-done' : 'is-upcoming'}`;
+    badge.textContent = isUpcoming
+      ? `\u958B\u59CB\u307E\u3067 ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
+      : isDone
+        ? '\u5B8C\u4E86\u6E08\u307F'
+        : '\u9032\u884C\u4E2D';
+  });
 }
 
 function getLiveTimerValue(timer) {
@@ -270,10 +322,10 @@ function renderTimers() {
   const timers = state.payload.state?.timers ?? [];
   elements.timerList.innerHTML = timers
     .map((timer, index) => `
-      <article class="timer-card timer-card-animated" style="--enter-delay: ${index * 80}ms">
+      <article class="timer-card timer-card-animated" style="--enter-delay: ${index * 80}ms" data-timer-card data-timer-id="${timer.id}">
         <span class="timer-meta">${timer.mode === 'up' ? '\u30AB\u30A6\u30F3\u30C8\u30A2\u30C3\u30D7' : '\u30AB\u30A6\u30F3\u30C8\u30C0\u30A6\u30F3'} / ${formatTimerStatus(timer.status)}</span>
         <h3>${timer.label}</h3>
-        <p class="timer-value">${formatSeconds(getLiveTimerValue(timer))}</p>
+        <p class="timer-value" data-timer-value>${formatSeconds(getLiveTimerValue(timer))}</p>
         <p class="timer-initial">\u521D\u671F\u5024: ${formatSeconds(timer.initialValue)}</p>
         <div class="timer-actions">
           <button data-timer="${timer.id}" data-action="start">Start</button>
@@ -285,13 +337,24 @@ function renderTimers() {
     .join('');
 }
 
+function updateTimerValues() {
+  const timers = state.payload.state?.timers ?? [];
+  const timersById = new Map(timers.map((timer) => [String(timer.id), timer]));
+
+  elements.timerList.querySelectorAll('[data-timer-card]').forEach((node) => {
+    const timer = timersById.get(String(node.dataset.timerId));
+    const valueNode = node.querySelector('[data-timer-value]');
+    if (!timer || !valueNode) return;
+    valueNode.textContent = formatSeconds(getLiveTimerValue(timer));
+  });
+}
+
 function renderClock() {
   elements.displayedTime.textContent = formatClock(getDisplayedNow());
   elements.browserTime.textContent = formatClock(Date.now());
 }
 
-function renderAll() {
-  renderClock();
+function renderStatic() {
   renderOverview();
   renderHeaderStats();
   renderCurrentEvent();
@@ -299,11 +362,20 @@ function renderAll() {
   renderTimers();
 }
 
+function updateLiveView() {
+  renderClock();
+  renderHeaderStats();
+  updateCurrentEventLive();
+  updateScheduleLive();
+  updateTimerValues();
+}
+
 async function bootstrap() {
   const response = await fetch('/api/bootstrap');
   state.payload = await response.json();
   state.ui.previewIndex = null;
-  renderAll();
+  renderStatic();
+  updateLiveView();
 }
 
 socket.on('connect', () => {
@@ -319,7 +391,8 @@ socket.on('sync_state', (payload) => {
   if (state.ui.previewIndex != null && state.ui.previewIndex >= payload.schedule.length) {
     state.ui.previewIndex = null;
   }
-  renderAll();
+  renderStatic();
+  updateLiveView();
 });
 
 document.addEventListener('click', async (event) => {
@@ -336,9 +409,7 @@ document.addEventListener('click', async (event) => {
 
   if (event.target.closest('#reset-offset')) {
     const currentOffset = state.payload.state?.globalOffsetSeconds ?? 0;
-    if (currentOffset === 0) {
-      return;
-    }
+    if (currentOffset === 0) return;
 
     if (!window.confirm('\u30B0\u30ED\u30FC\u30D0\u30EB\u30AA\u30D5\u30BB\u30C3\u30C8\u3092 0 \u79D2\u306B\u623B\u3057\u307E\u3059\u304B\uff1f')) {
       return;
@@ -370,7 +441,8 @@ document.addEventListener('click', async (event) => {
     if (activeIndex < 0) return;
     const delta = previewButton.dataset.previewAction === 'previous' ? -1 : 1;
     state.ui.previewIndex = Math.max(0, Math.min(activeIndex + delta, state.payload.schedule.length - 1));
-    renderAll();
+    renderStatic();
+    updateLiveView();
     return;
   }
 
@@ -398,11 +470,7 @@ document.addEventListener('click', async (event) => {
 
 setInterval(() => {
   if (!state.payload.state) return;
-  renderClock();
-  renderHeaderStats();
-  renderCurrentEvent();
-  renderSchedule();
-  renderTimers();
+  updateLiveView();
 }, 1000);
 
 bootstrap();
