@@ -57,20 +57,20 @@ function formatSeconds(totalSeconds) {
 }
 
 function formatTimerStatus(status) {
-  if (status === 'running') return '\u9032\u884C\u4E2D';
-  if (status === 'paused') return '\u4E00\u6642\u505C\u6B62';
-  return '\u505C\u6B62\u4E2D';
+  if (status === 'running') return '進行中';
+  if (status === 'paused') return '一時停止';
+  return '停止中';
 }
 
 function formatOffsetLabel(seconds) {
-  if (seconds === 0) return '\u5B9A\u523B';
+  if (seconds === 0) return '定刻';
   const absSeconds = Math.abs(seconds);
   const minutes = Math.floor(absSeconds / 60);
   const remainSeconds = absSeconds % 60;
-  const minuteText = minutes > 0 ? `${minutes}\u5206` : '';
-  const secondText = remainSeconds > 0 ? `${remainSeconds}\u79D2` : '';
-  const deltaText = `${minuteText}${secondText}` || '0\u79D2';
-  return seconds > 0 ? `${deltaText}\u9045\u308C` : `${deltaText}\u5DFB\u304D`;
+  const minuteText = minutes > 0 ? `${minutes}分` : '';
+  const secondText = remainSeconds > 0 ? `${remainSeconds}秒` : '';
+  const deltaText = `${minuteText}${secondText}` || '0秒';
+  return seconds > 0 ? `${deltaText}遅れ` : `${deltaText}巻き`;
 }
 
 function setDonutValue(element, percent) {
@@ -161,11 +161,11 @@ function renderCurrentEvent() {
   if (!currentItem) {
     elements.currentEvent.innerHTML = `
       <div class="current-event-fallback">
-        <p class="empty-state">\u73FE\u5728\u9032\u884C\u4E2D\u306E\u30A4\u30D9\u30F3\u30C8\u306F\u3042\u308A\u307E\u305B\u3093\u3002</p>
+        <p class="empty-state">現在進行中のイベントはありません。</p>
         <div class="next-event-card">
-          <span>\u6B21\u306E\u958B\u59CB</span>
-          <strong>${nextRealItem ? nextRealItem.title : '\u4E88\u5B9A\u306A\u3057'}</strong>
-          <p>${nextRealItem ? `\u958B\u59CB\u307E\u3067 ${formatSeconds(Math.floor((new Date(nextRealItem.start).getTime() - displayedNow) / 1000))}` : '\u30B9\u30B1\u30B8\u30E5\u30FC\u30EB\u306B\u6B21\u306E\u4E88\u5B9A\u304C\u3042\u308A\u307E\u305B\u3093\u3002'}</p>
+          <span>次の開始</span>
+          <strong>${nextRealItem ? nextRealItem.title : '予定なし'}</strong>
+          <p>${nextRealItem ? `開始まで ${formatSeconds(Math.floor((new Date(nextRealItem.start).getTime() - displayedNow) / 1000))}` : 'スケジュールに次の予定がありません。'}</p>
         </div>
       </div>
     `;
@@ -187,30 +187,30 @@ function renderCurrentEvent() {
       <div class="current-event-mainline">
         <div class="current-event-copy">
           <h3>${currentItem.title}</h3>
-          <p class="current-event-subtitle">${currentItem.subTitle || '\u30B5\u30D6\u30BF\u30A4\u30C8\u30EB\u306A\u3057'}</p>
+          <p class="current-event-subtitle">${currentItem.subTitle || 'サブタイトルなし'}</p>
         </div>
         <div class="current-event-countdown">
-          <span class="current-event-countdown-label">${isPreviewing ? '\u30D7\u30EC;&#12499;&#12517;&#12540;' : '\u6B8B\u308A\u6642\u9593'}</span>
+          <span class="current-event-countdown-label">${isPreviewing ? 'プレビュー' : '残り時間'}</span>
           <strong data-current-remaining>00:00:00</strong>
         </div>
       </div>
       <div class="progress-meta">
-        <span data-current-left>${isPreviewing ? '\u30D7\u30EC\u30D3\u30E5\u30FC\u8868\u793A' : ''}</span>
-        <span data-current-right>${isPreviewing ? '\u30AA\u30D5\u30BB\u30C3\u30C8\u53CD\u6620\u306A\u3057' : ''}</span>
+        <span data-current-left>${isPreviewing ? 'プレビュー表示' : ''}</span>
+        <span data-current-right>${isPreviewing ? 'オフセット反映なし' : ''}</span>
       </div>
       <div class="progress-bar" aria-hidden="true">
         <span data-current-progress></span>
       </div>
       <div class="next-event-card">
-        <span>\u6B21\u306E\u958B\u59CB</span>
-        <strong>${nextItem ? nextItem.title : '\u6B21\u306E\u4E88\u5B9A\u306A\u3057'}</strong>
-        <p data-next-countdown>${nextItem ? '' : '\u3053\u306E\u5F8C\u306E\u4E88\u5B9A\u306F\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002'}</p>
+        <span>次の開始</span>
+        <strong>${nextItem ? nextItem.title : '次の予定なし'}</strong>
+        <p data-next-countdown>${nextItem ? '' : 'この後の予定は登録されていません。'}</p>
       </div>
       <div class="event-shift-actions event-shift-grid">
-        <button class="ghost-button shift-button shift-button-neutral" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>\u623B\u3059</button>
-        <button class="ghost-button shift-button shift-button-neutral" data-preview-action="next" ${nextItem ? '' : 'disabled'}>\u6B21\u3078</button>
-        <button class="force-button shift-button shift-button-prev" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>\u623B\u3059\uff08\u5F37\u5236\uff09</button>
-        <button class="force-button shift-button shift-button-next" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>\u6B21\u3078\uff08\u5F37\u5236\uff09</button>
+        <button class="ghost-button shift-button shift-button-neutral" data-preview-action="previous" ${previousItem ? '' : 'disabled'}>戻す</button>
+        <button class="ghost-button shift-button shift-button-neutral" data-preview-action="next" ${nextItem ? '' : 'disabled'}>次へ</button>
+        <button class="force-button shift-button shift-button-prev" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>戻す（強制）</button>
+        <button class="force-button shift-button shift-button-next" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>次へ（強制）</button>
       </div>
     </div>
   `;
@@ -242,14 +242,14 @@ function updateCurrentEventLive() {
   const nextCountdownNode = shell.querySelector('[data-next-countdown]');
 
   if (remainingNode) remainingNode.textContent = formatSeconds(remaining);
-  if (leftNode) leftNode.textContent = isPreviewing ? '\u30D7\u30EC\u30D3\u30E5\u30FC\u8868\u793A' : `\u7D4C\u904E ${formatSeconds(elapsed)}`;
-  if (rightNode) rightNode.textContent = isPreviewing ? '\u30AA\u30D5\u30BB\u30C3\u30C8\u53CD\u6620\u306A\u3057' : `\u9032\u884C\u7387 ${Math.round(progress)}%`;
+  if (leftNode) leftNode.textContent = isPreviewing ? 'プレビュー表示' : `経過 ${formatSeconds(elapsed)}`;
+  if (rightNode) rightNode.textContent = isPreviewing ? 'オフセット反映なし' : `進行率 ${Math.round(progress)}%`;
   if (progressNode) progressNode.style.width = `${progress}%`;
 
   if (nextCountdownNode) {
     nextCountdownNode.textContent = nextItem
-      ? `${formatClock(new Date(nextItem.start).getTime())} \u958B\u59CB / \u3042\u3068 ${formatSeconds(Math.max(0, Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000)))}`
-      : '\u3053\u306E\u5F8C\u306E\u4E88\u5B9A\u306F\u767B\u9332\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002';
+      ? `${formatClock(new Date(nextItem.start).getTime())} 開始 / あと ${formatSeconds(Math.max(0, Math.floor((new Date(nextItem.start).getTime() - displayedNow) / 1000)))}`
+      : 'この後の予定は登録されていません。';
   }
 }
 
@@ -271,14 +271,14 @@ function renderSchedule() {
               <span class="schedule-type-accent" aria-hidden="true"></span>
               <h3>${item.title}</h3>
             </div>
-            <p class="schedule-subtitle">${item.subTitle || '\u30B5\u30D6\u30BF\u30A4\u30C8\u30EB\u306A\u3057'}</p>
+            <p class="schedule-subtitle">${item.subTitle || 'サブタイトルなし'}</p>
             <span class="schedule-meta">${item.section} / ${item.type}</span>
           </div>
           <div class="schedule-side">
             <strong>${formatClock(start)}-${formatClock(end)}</strong>
             <span class="schedule-meta">(${formatSeconds(item.duration)})</span>
             <span class="schedule-badge" data-schedule-badge></span>
-            ${dashboardConfig.showPerEventSyncButtons ? `<button class="force-button schedule-sync-button" data-resync="${item.id}">\u3053\u3053\u306B\u540C\u671F</button>` : ''}
+            ${dashboardConfig.showPerEventSyncButtons ? `<button class="force-button schedule-sync-button" data-resync="${item.id}">ここに同期</button>` : ''}
           </div>
         </article>
       `;
@@ -305,10 +305,10 @@ function updateScheduleLive() {
     if (!badge) return;
     badge.className = `schedule-badge ${isCurrent ? 'is-live' : isDone ? 'is-done' : 'is-upcoming'}`;
     badge.textContent = isUpcoming
-      ? `\u958B\u59CB\u307E\u3067 ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
+      ? `開始まで ${formatSeconds(Math.floor((start - displayedNow) / 1000))}`
       : isDone
-        ? '\u5B8C\u4E86\u6E08\u307F'
-        : '\u9032\u884C\u4E2D';
+        ? '完了済み'
+        : '進行中';
   });
 }
 
@@ -323,10 +323,10 @@ function renderTimers() {
   elements.timerList.innerHTML = timers
     .map((timer, index) => `
       <article class="timer-card timer-card-animated" style="--enter-delay: ${index * 80}ms" data-timer-card data-timer-id="${timer.id}">
-        <span class="timer-meta">${timer.mode === 'up' ? '\u30AB\u30A6\u30F3\u30C8\u30A2\u30C3\u30D7' : '\u30AB\u30A6\u30F3\u30C8\u30C0\u30A6\u30F3'} / ${formatTimerStatus(timer.status)}</span>
+        <span class="timer-meta">${timer.mode === 'up' ? 'カウントアップ' : 'カウントダウン'} / ${formatTimerStatus(timer.status)}</span>
         <h3>${timer.label}</h3>
         <p class="timer-value" data-timer-value>${formatSeconds(getLiveTimerValue(timer))}</p>
-        <p class="timer-initial">\u521D\u671F\u5024: ${formatSeconds(timer.initialValue)}</p>
+        <p class="timer-initial">初期値: ${formatSeconds(timer.initialValue)}</p>
         <div class="timer-actions">
           <button data-timer="${timer.id}" data-action="start">Start</button>
           <button data-timer="${timer.id}" data-action="pause">Pause</button>
@@ -411,7 +411,7 @@ document.addEventListener('click', async (event) => {
     const currentOffset = state.payload.state?.globalOffsetSeconds ?? 0;
     if (currentOffset === 0) return;
 
-    if (!window.confirm('\u30B0\u30ED\u30FC\u30D0\u30EB\u30AA\u30D5\u30BB\u30C3\u30C8\u3092 0 \u79D2\u306B\u623B\u3057\u307E\u3059\u304B\uff1f')) {
+    if (!window.confirm('グローバルオフセットを 0 秒に戻しますか？')) {
       return;
     }
 
