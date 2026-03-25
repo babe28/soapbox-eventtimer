@@ -95,6 +95,12 @@ body {
   animation: panel-rise 360ms ease both;
 }
 
+:root[data-theme="dark"] .hero {
+  background:
+    linear-gradient(135deg, rgba(24, 44, 40, 0.94), rgba(10, 24, 21, 0.86)),
+    linear-gradient(145deg, rgba(15, 35, 31, 0.96), rgba(9, 22, 20, 0.9));
+}
+
 .hero-compact {
   padding: 14px 18px;
   border-radius: 22px;
@@ -166,9 +172,18 @@ body {
   transition: transform 160ms ease, background-color 160ms ease, color 160ms ease;
 }
 
+:root[data-theme="dark"] .nav-link {
+  color: var(--ink);
+  background: rgba(231, 244, 239, 0.08);
+}
+
 .nav-link:hover {
   transform: translateY(-1px);
   background: rgba(24, 54, 48, 0.14);
+}
+
+:root[data-theme="dark"] .nav-link:hover {
+  background: rgba(231, 244, 239, 0.14);
 }
 
 .nav-link.current {
@@ -340,6 +355,12 @@ body {
   box-shadow: var(--shadow);
 }
 
+:root[data-theme="dark"] .panel {
+  background:
+    linear-gradient(180deg, rgba(24, 44, 40, 0.9), rgba(8, 20, 18, 0.82)),
+    rgba(10, 24, 21, 0.84);
+}
+
 .panel-secondary {
   grid-column: span 12;
 }
@@ -406,9 +427,23 @@ body {
   transition: transform 160ms ease, background-color 160ms ease;
 }
 
+:root[data-theme="dark"] .ghost-button,
+:root[data-theme="dark"] .shift-button-neutral,
+:root[data-theme="dark"] .offset-controls .offset-button-reset {
+  background: rgba(231, 244, 239, 0.1);
+  color: var(--ink);
+  border: 1px solid rgba(231, 244, 239, 0.12);
+}
+
 .ghost-button:hover {
   transform: translateY(-1px);
   background: rgba(24, 54, 48, 0.14);
+}
+
+:root[data-theme="dark"] .ghost-button:hover,
+:root[data-theme="dark"] .shift-button-neutral:hover,
+:root[data-theme="dark"] .offset-controls .offset-button-reset:hover {
+  background: rgba(231, 244, 239, 0.16);
 }
 
 .force-button {
@@ -449,6 +484,20 @@ body {
   padding: 14px 16px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.42)),
+    var(--panel);
+}
+
+:root[data-theme="dark"] .status-chip,
+:root[data-theme="dark"] .metric-card,
+:root[data-theme="dark"] .schedule-item,
+:root[data-theme="dark"] .editor-card,
+:root[data-theme="dark"] .timer-card,
+:root[data-theme="dark"] .json-grid article,
+:root[data-theme="dark"] .timer-config-card,
+:root[data-theme="dark"] .color-config-card,
+:root[data-theme="dark"] .api-card {
+  background:
+    linear-gradient(180deg, rgba(22, 42, 38, 0.96), rgba(9, 22, 19, 0.9)),
     var(--panel);
 }
 
@@ -532,6 +581,13 @@ body {
 .editor-card.is-current {
   outline: 2px solid var(--accent);
   background: linear-gradient(145deg, rgba(255, 247, 241, 0.96), rgba(255, 252, 247, 0.96));
+}
+
+:root[data-theme="dark"] .schedule-item.is-current,
+:root[data-theme="dark"] .editor-card.is-current {
+  background:
+    linear-gradient(145deg, rgba(61, 31, 18, 0.92), rgba(22, 17, 15, 0.94)),
+    rgba(15, 27, 24, 0.92);
 }
 
 .schedule-item h3,
@@ -628,6 +684,12 @@ body {
     linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 251, 248, 0.84));
   position: relative;
   overflow: hidden;
+}
+
+:root[data-theme="dark"] .timer-card {
+  background:
+    linear-gradient(135deg, rgba(255, 141, 92, 0.12), transparent 48%),
+    linear-gradient(180deg, rgba(20, 38, 34, 0.96), rgba(8, 20, 18, 0.92));
 }
 
 .timer-card::before {
@@ -764,6 +826,11 @@ body {
   background: rgba(10, 21, 19, 0.78);
 }
 
+:root[data-theme="dark"] .current-event-countdown,
+:root[data-theme="dark"] .next-event-card {
+  border-color: rgba(231, 244, 239, 0.1);
+}
+
 .current-event-countdown-label {
   color: var(--muted);
   font-size: 0.84rem;
@@ -789,6 +856,10 @@ body {
   overflow: hidden;
   border-radius: 999px;
   background: rgba(22, 48, 43, 0.1);
+}
+
+:root[data-theme="dark"] .progress-bar {
+  background: rgba(231, 244, 239, 0.12);
 }
 
 .progress-bar span {
@@ -950,6 +1021,11 @@ body {
   color: var(--ink);
 }
 
+:root[data-theme="dark"] .editor-form input::placeholder,
+:root[data-theme="dark"] .saved-schedule-tools input::placeholder {
+  color: rgba(237, 247, 242, 0.52);
+}
+
 .dashboard-config-form {
   display: grid;
   gap: 16px;
@@ -1035,6 +1111,12 @@ body {
   padding: 16px 18px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.44), rgba(255, 255, 255, 0.08)),
+    var(--panel);
+}
+
+:root[data-theme="dark"] .api-card {
+  background:
+    linear-gradient(180deg, rgba(20, 39, 35, 0.98), rgba(8, 20, 18, 0.9)),
     var(--panel);
 }
 

@@ -327,6 +327,35 @@ function getScheduleIndexByCurrent(referenceTime = Date.now()) {
   });
 }
 
+function getScheduleNavigationTarget(action, referenceTime = Date.now()) {
+  if (schedule.length === 0) return null;
+
+  const currentIndex = getScheduleIndexByCurrent(referenceTime);
+  const activeIndex = currentIndex >= 0 ? currentIndex : 0;
+
+  if (action === 'next') {
+    const targetIndex = Math.min(activeIndex + 1, schedule.length - 1);
+    return {
+      action,
+      currentIndex,
+      targetIndex,
+      item: schedule[targetIndex] ?? null,
+    };
+  }
+
+  if (action === 'previous') {
+    const targetIndex = Math.max(activeIndex - 1, 0);
+    return {
+      action,
+      currentIndex,
+      targetIndex,
+      item: schedule[targetIndex] ?? null,
+    };
+  }
+
+  return null;
+}
+
 function shiftSchedule(action, referenceTime = Date.now()) {
   if (schedule.length === 0) return false;
 
@@ -568,6 +597,88 @@ app.post('/api/schedule/shift', async (req, res) => {
   await appendProgressLog({
     action: 'shift',
     detail: `強制移動 ${String(req.body?.action || '')}`,
+    beforeOffsetSeconds,
+    afterOffsetSeconds: state.globalOffsetSeconds,
+  });
+  await syncAll();
+  res.json({ success: true, state: getPayload().state });
+});
+
+app.post('/api/schedule/preview', (req, res) => {
+  const preview = getScheduleNavigationTarget(req.body?.action);
+  if (!preview) {
+    res.status(400).json({ success: false, message: 'Invalid preview action.' });
+    return;
+  }
+
+  res.json({
+    success: true,
+    action: preview.action,
+    currentIndex: preview.currentIndex,
+    targetIndex: preview.targetIndex,
+    item: clone(preview.item),
+  });
+});
+
+app.post('/api/schedule/preview/previous', (req, res) => {
+  const preview = getScheduleNavigationTarget('previous');
+  if (!preview) {
+    res.status(400).json({ success: false, message: 'Preview target not found.' });
+    return;
+  }
+
+  res.json({
+    success: true,
+    action: preview.action,
+    currentIndex: preview.currentIndex,
+    targetIndex: preview.targetIndex,
+    item: clone(preview.item),
+  });
+});
+
+app.post('/api/schedule/preview/next', (req, res) => {
+  const preview = getScheduleNavigationTarget('next');
+  if (!preview) {
+    res.status(400).json({ success: false, message: 'Preview target not found.' });
+    return;
+  }
+
+  res.json({
+    success: true,
+    action: preview.action,
+    currentIndex: preview.currentIndex,
+    targetIndex: preview.targetIndex,
+    item: clone(preview.item),
+  });
+});
+
+app.post('/api/schedule/shift/previous', async (_req, res) => {
+  const beforeOffsetSeconds = state.globalOffsetSeconds;
+  if (!shiftSchedule('previous')) {
+    res.status(400).json({ success: false, message: 'Unable to move to previous schedule item.' });
+    return;
+  }
+
+  await appendProgressLog({
+    action: 'shift',
+    detail: '強制移動 previous',
+    beforeOffsetSeconds,
+    afterOffsetSeconds: state.globalOffsetSeconds,
+  });
+  await syncAll();
+  res.json({ success: true, state: getPayload().state });
+});
+
+app.post('/api/schedule/shift/next', async (_req, res) => {
+  const beforeOffsetSeconds = state.globalOffsetSeconds;
+  if (!shiftSchedule('next')) {
+    res.status(400).json({ success: false, message: 'Unable to move to next schedule item.' });
+    return;
+  }
+
+  await appendProgressLog({
+    action: 'shift',
+    detail: '強制移動 next',
     beforeOffsetSeconds,
     afterOffsetSeconds: state.globalOffsetSeconds,
   });

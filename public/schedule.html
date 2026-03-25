@@ -277,6 +277,34 @@
             <article class="api-card">
               <div class="api-head">
                 <span class="api-method">POST</span>
+                <code>/api/schedule/preview/previous</code>
+              </div>
+              <p>イベントカードの「戻す」に相当するプレビュー候補を返します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/schedule/preview/next</code>
+              </div>
+              <p>イベントカードの「次へ」に相当するプレビュー候補を返します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/schedule/shift/previous</code>
+              </div>
+              <p>イベントカードの「戻す（強制）」に相当する進行移動を実行します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
+                <code>/api/schedule/shift/next</code>
+              </div>
+              <p>イベントカードの「次へ（強制）」に相当する進行移動を実行します。</p>
+            </article>
+            <article class="api-card">
+              <div class="api-head">
+                <span class="api-method">POST</span>
                 <code>/api/resync</code>
               </div>
               <p><code>{ "id": "evt_003" }</code> を送って指定イベントへ同期します。</p>
