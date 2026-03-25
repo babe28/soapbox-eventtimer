@@ -11,9 +11,9 @@
       <header class="hero hero-compact hero-dashboard">
         <div class="hero-main">
           <p class="eyebrow">Soapbox Event Timer</p>
-          <h1>イベントダッシュボード</h1>
+          <h1>&#12452;&#12505;&#12531;&#12488;&#12480;&#12483;&#12471;&#12517;&#12508;&#12540;&#12489;</h1>
           <p class="hero-copy">
-            現在進行中の予定、全体オフセット、俯瞰スケジュールをまとめて確認するメイン画面です。
+            &#29694;&#22312;&#36914;&#34892;&#20013;&#12398;&#12452;&#12505;&#12531;&#12488;&#12289;&#20840;&#20307;&#12473;&#12465;&#12472;&#12517;&#12540;&#12523;&#12289;&#29420;&#31435;&#12479;&#12452;&#12510;&#12540;&#12434;&#12414;&#12392;&#12417;&#12390;&#30906;&#35469;&#12377;&#12427;&#12513;&#12452;&#12531;&#30011;&#38754;&#12391;&#12377;&#12290;
           </p>
           <p class="hero-version">Version 1.0.0</p>
         </div>
@@ -24,14 +24,14 @@
           </div>
           <div class="hero-status hero-status-wide">
             <div class="status-chip status-chip-donut">
-              <span>全体消化率</span>
+              <span>&#20840;&#20307;&#36914;&#34892;&#29575;</span>
               <div class="status-donut">
                 <div id="event-progress-donut" class="donut-ring"><span id="event-progress-value">0%</span></div>
                 <strong id="event-progress-label">0 / 0</strong>
               </div>
             </div>
             <div class="status-chip status-chip-donut">
-              <span>最終終了まで</span>
+              <span>&#32066;&#20102;&#12414;&#12391;</span>
               <div class="status-donut">
                 <div id="final-end-donut" class="donut-ring"><span id="final-end-value">--:--:--</span></div>
                 <strong id="final-end-label">--:--:--</strong>
@@ -39,12 +39,12 @@
             </div>
             <div class="status-chip status-chip-double">
               <div class="status-inline">
-                <span>表示時刻</span>
+                <span>&#34920;&#31034;&#26178;&#21051;</span>
                 <strong id="displayed-time">--:--:--</strong>
               </div>
               <div class="status-inline">
-                <span>進行差分</span>
-                <strong id="offset-status">定刻</strong>
+                <span>&#36914;&#34892;&#24046;&#20998;</span>
+                <strong id="offset-status">&#23450;&#21051;</strong>
               </div>
             </div>
             <div class="status-chip status-chip-double">
@@ -53,7 +53,7 @@
                 <strong id="socket-status">Connecting</strong>
               </div>
               <div class="status-inline">
-                <span>ブラウザ時刻</span>
+                <span>&#12502;&#12521;&#12454;&#12470;&#26178;&#21051;</span>
                 <strong id="browser-time">--:--:--</strong>
               </div>
             </div>
@@ -66,22 +66,18 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Overview</p>
-              <h2>進行コントロール</h2>
+              <h2>&#36914;&#34892;&#12467;&#12531;&#12488;&#12525;&#12540;&#12523;</h2>
             </div>
           </div>
 
           <div class="overview-metrics">
             <article class="metric-card">
-              <span>グローバルオフセット</span>
+              <span>&#12464;&#12525;&#12540;&#12496;&#12523;&#12458;&#12501;&#12475;&#12483;&#12488;</span>
               <strong id="offset-seconds">0s</strong>
             </article>
             <article class="metric-card">
-              <span>現在の進行</span>
-              <strong id="current-schedule">待機中</strong>
-            </article>
-            <article class="metric-card">
-              <span>進行差分</span>
-              <strong id="progress-diff">定刻</strong>
+              <span>&#36914;&#34892;&#24046;&#20998;</span>
+              <strong id="progress-diff">&#23450;&#21051;</strong>
             </article>
           </div>
 
@@ -92,7 +88,7 @@
             <button class="offset-button offset-button-plus" data-offset="30">+30s</button>
             <button class="offset-button offset-button-plus" data-offset="60">+1m</button>
             <button class="offset-button offset-button-plus" data-offset="300">+5m</button>
-            <button class="offset-button offset-button-reset" id="reset-offset">0に戻す</button>
+            <button class="offset-button offset-button-reset" id="reset-offset">0&#12395;&#25147;&#12377;</button>
           </div>
         </section>
 
@@ -100,11 +96,11 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Main</p>
-              <h2>現在進行中のイベント</h2>
+              <h2>&#29694;&#22312;&#36914;&#34892;&#20013;&#12398;&#12452;&#12505;&#12531;&#12488;</h2>
             </div>
           </div>
           <div id="current-event" class="current-event-card">
-            <p class="empty-state">現在進行中のイベントはありません。</p>
+            <p class="empty-state">&#29694;&#22312;&#36914;&#34892;&#20013;&#12398;&#12452;&#12505;&#12531;&#12488;&#12399;&#12354;&#12426;&#12414;&#12379;&#12435;&#12290;</p>
           </div>
         </section>
 
@@ -112,19 +108,13 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Live Run</p>
-              <h2>俯瞰スケジュール</h2>
+              <h2>&#20457;&#30636;&#12473;&#12465;&#12472;&#12517;&#12540;&#12523;</h2>
             </div>
           </div>
           <div id="schedule-list" class="schedule-list"></div>
         </section>
 
-        <section class="panel panel-timers panel-compact">
-          <div class="panel-head">
-            <div>
-              <p class="panel-kicker">Timers</p>
-              <h2>独立タイマー</h2>
-            </div>
-          </div>
+        <section class="panel panel-timers panel-compact panel-timers-minimal">
           <div id="timer-list" class="timer-list"></div>
         </section>
       </main>

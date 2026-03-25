@@ -18,7 +18,6 @@ const elements = {
   offsetSeconds: document.querySelector('#offset-seconds'),
   offsetStatus: document.querySelector('#offset-status'),
   progressDiff: document.querySelector('#progress-diff'),
-  currentSchedule: document.querySelector('#current-schedule'),
   resetOffset: document.querySelector('#reset-offset'),
   currentEvent: document.querySelector('#current-event'),
   scheduleList: document.querySelector('#schedule-list'),
@@ -122,11 +121,6 @@ function renderOverview() {
   const offsetLabel = formatOffsetLabel(currentState.globalOffsetSeconds);
   elements.offsetStatus.textContent = offsetLabel;
   elements.progressDiff.textContent = offsetLabel;
-  const activeIndex = getActiveIndex();
-  const activeItem = activeIndex >= 0 ? state.payload.schedule[activeIndex] : null;
-  elements.currentSchedule.textContent = activeItem
-    ? `${activeItem.title} / ${activeItem.section}`
-    : '\u5F85\u6A5F\u4E2D';
 }
 
 function renderHeaderStats() {
@@ -275,12 +269,12 @@ function getLiveTimerValue(timer) {
 function renderTimers() {
   const timers = state.payload.state?.timers ?? [];
   elements.timerList.innerHTML = timers
-    .map((timer) => `
-      <article class="timer-card">
+    .map((timer, index) => `
+      <article class="timer-card timer-card-animated" style="--enter-delay: ${index * 80}ms">
         <span class="timer-meta">${timer.mode === 'up' ? '\u30AB\u30A6\u30F3\u30C8\u30A2\u30C3\u30D7' : '\u30AB\u30A6\u30F3\u30C8\u30C0\u30A6\u30F3'} / ${formatTimerStatus(timer.status)}</span>
         <h3>${timer.label}</h3>
         <p class="timer-value">${formatSeconds(getLiveTimerValue(timer))}</p>
-        <p>\u521D\u671F\u5024: ${formatSeconds(timer.initialValue)}</p>
+        <p class="timer-initial">\u521D\u671F\u5024: ${formatSeconds(timer.initialValue)}</p>
         <div class="timer-actions">
           <button data-timer="${timer.id}" data-action="start">Start</button>
           <button data-timer="${timer.id}" data-action="pause">Pause</button>
