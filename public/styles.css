@@ -921,6 +921,14 @@ body {
     rgba(255, 255, 255, 0.58);
 }
 
+.live-message-editor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
 :root[data-theme="dark"] .live-message-editor {
   background:
     linear-gradient(180deg, rgba(18, 36, 32, 0.96), rgba(9, 21, 19, 0.9)),
@@ -929,12 +937,6 @@ body {
 
 .live-message-editor-copy h3 {
   margin: 0;
-}
-
-.live-message-editor-copy p:last-child {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
 }
 
 .live-message-field {
@@ -966,11 +968,26 @@ body {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .live-message-actions .ghost-button.is-active {
   background: var(--accent);
   color: #ffffff;
+}
+
+.live-message-actions .live-message-red-button.is-active {
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.live-message-editor.is-blinking {
+  animation: live-message-blink 1.15s steps(2, start) infinite;
+}
+
+.live-message-editor.is-red {
+  border-color: color-mix(in srgb, var(--danger) 60%, var(--line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 22%, transparent);
 }
 
 .event-shift-actions {
@@ -1103,36 +1120,9 @@ body {
   gap: 16px;
 }
 
-.live-view-config {
-  display: grid;
-  gap: 14px;
-  padding: 16px 18px;
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.46);
-}
-
-:root[data-theme="dark"] .live-view-config {
-  background: rgba(9, 22, 19, 0.82);
-}
-
-.live-view-config-copy h3,
 .live-view-access-copy p,
 .live-view-message p {
   margin: 0;
-}
-
-.live-view-config-copy p {
-  margin: 6px 0 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
-}
-
-.live-view-message-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
 }
 
 .live-view-access {
@@ -1340,6 +1330,18 @@ pre {
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 24px 64px rgba(0, 0, 0, 0.42);
   backdrop-filter: blur(14px);
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.live-view-card.is-red-alert {
+  border-color: rgba(255, 126, 126, 0.5);
+  background:
+    linear-gradient(180deg, rgba(255, 84, 84, 0.22), rgba(255, 255, 255, 0.02)),
+    linear-gradient(135deg, rgba(255, 76, 76, 0.12), transparent 44%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 0 1px rgba(255, 86, 86, 0.22),
+    0 24px 64px rgba(0, 0, 0, 0.42);
 }
 
 .live-view-kicker {
@@ -1415,14 +1417,39 @@ pre {
 }
 
 .live-view-progress span {
-  display: block;
-  height: 100%;
-  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 28px;
   width: 0;
+  padding-right: 12px;
   border-radius: inherit;
-  background: linear-gradient(90deg, #ffffff 0%, #d8d8d8 100%);
-  box-shadow: 0 0 24px rgba(255, 255, 255, 0.28);
+  background: var(--live-progress-color, #ffffff);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--live-progress-color, #ffffff) 28%, transparent);
   transition: width 240ms ease;
+}
+
+.live-view-progress span strong {
+  font-size: 0.98rem;
+  color: #111111;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.live-view-progress span.stage-1 {
+  --live-progress-color: #d7e3ff;
+}
+
+.live-view-progress span.stage-2 {
+  --live-progress-color: #8ce99a;
+}
+
+.live-view-progress span.stage-3 {
+  --live-progress-color: #ffd86b;
+}
+
+.live-view-progress span.stage-4 {
+  --live-progress-color: #ff8a6b;
 }
 
 .live-view-message {
@@ -1523,7 +1550,6 @@ pre {
   .overview-metrics,
   .json-grid,
   .editor-form,
-  .live-view-message-grid,
   .live-view-access,
   .saved-schedule-tools,
   .timer-actions {
@@ -1541,6 +1567,14 @@ pre {
 
   .timer-config-card {
     grid-template-columns: 1fr;
+  }
+
+  .live-message-editor-head {
+    align-items: stretch;
+  }
+
+  .live-message-actions {
+    justify-content: flex-start;
   }
 }
 

@@ -121,22 +121,6 @@
               <input name="showPerEventSyncButtons" type="checkbox" />
               <span>各イベントの強制同期ボタンを表示する</span>
             </label>
-            <div class="live-view-config">
-              <div class="live-view-config-copy">
-                <h3>子機表示メッセージ</h3>
-                <p>現在進行のみ表示する専用画面に、最大 13 文字 x 2 行のメッセージを表示できます。</p>
-              </div>
-              <div class="live-view-message-grid">
-                <label>
-                  <span>1行目</span>
-                  <input name="liveViewMessageLine1" type="text" maxlength="13" placeholder="まもなく開始" />
-                </label>
-                <label>
-                  <span>2行目</span>
-                  <input name="liveViewMessageLine2" type="text" maxlength="13" placeholder="準備をお願いします" />
-                </label>
-              </div>
-            </div>
             <div id="event-type-colors" class="color-config-list"></div>
           </form>
         </section>
@@ -300,7 +284,7 @@
                 <span class="api-method">PUT</span>
                 <code>/api/dashboard-config</code>
               </div>
-              <p>ダッシュボード表示設定と子機画面メッセージを保存します。</p>
+              <p>ダッシュボード表示設定を保存します。</p>
             </article>
             <article class="api-card">
               <div class="api-head">

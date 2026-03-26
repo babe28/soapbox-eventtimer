@@ -9,6 +9,7 @@ const liveState = {
 const liveSocket = io();
 
 const liveElements = {
+  root: document.querySelector('#live-view'),
   title: document.querySelector('#live-title'),
   subtitle: document.querySelector('#live-subtitle'),
   remaining: document.querySelector('#live-remaining'),
@@ -43,14 +44,33 @@ function getCurrentItem() {
   }) ?? null;
 }
 
+function getLiveViewState() {
+  return liveState.payload.state?.liveView ?? {
+    text: '',
+    line1: '',
+    line2: '',
+    blinkUntil: 0,
+    redUntil: 0,
+  };
+}
+
+function getProgressStage(progress) {
+  if (progress >= 75) return 'stage-4';
+  if (progress >= 50) return 'stage-3';
+  if (progress >= 25) return 'stage-2';
+  return 'stage-1';
+}
+
 function renderMessage() {
-  const message = liveState.payload.state?.dashboardConfig?.liveViewMessage ?? {};
+  const message = getLiveViewState();
   const line1 = String(message.line1 || '').trim();
   const line2 = String(message.line2 || '').trim();
   const hasMessage = line1 || line2;
+  const now = Date.now();
 
   liveElements.message.hidden = !hasMessage;
-  liveElements.message.classList.toggle('is-blinking', Boolean(message.blink) && hasMessage);
+  liveElements.message.classList.toggle('is-blinking', Number(message.blinkUntil || 0) > now && hasMessage);
+  liveElements.root.classList.toggle('is-red-alert', Number(message.redUntil || 0) > now);
   liveElements.messageLine1.textContent = line1 || '\u00A0';
   liveElements.messageLine2.textContent = line2 || '\u00A0';
 }
@@ -65,6 +85,7 @@ function renderLiveView() {
     liveElements.progressLabel.textContent = '進行状況';
     liveElements.progressValue.textContent = '0%';
     liveElements.progressBar.style.width = '0%';
+    liveElements.progressBar.className = 'stage-1';
     renderMessage();
     return;
   }
@@ -84,6 +105,7 @@ function renderLiveView() {
   liveElements.progressLabel.textContent = `${currentItem.section} / ${currentItem.type}`;
   liveElements.progressValue.textContent = `${Math.round(progress)}%`;
   liveElements.progressBar.style.width = `${progress}%`;
+  liveElements.progressBar.className = getProgressStage(progress);
   renderMessage();
 }
 

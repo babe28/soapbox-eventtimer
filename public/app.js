@@ -34,6 +34,7 @@ const elements = {
   liveMessageForm: document.querySelector('#live-message-form'),
   liveMessageInput: document.querySelector('#live-message-input'),
   liveMessageBlink: document.querySelector('#live-message-blink'),
+  liveMessageRed: document.querySelector('#live-message-red'),
 };
 
 function applyTheme(theme) {
@@ -56,12 +57,6 @@ function initializeTheme() {
 function getDashboardConfig() {
   return state.payload.state?.dashboardConfig ?? {
     showPerEventSyncButtons: false,
-    liveViewMessage: {
-      text: '',
-      line1: '',
-      line2: '',
-      blink: false,
-    },
     eventTypeColors: {
       normal: '#1d6b48',
       break: '#b07300',
@@ -72,12 +67,13 @@ function getDashboardConfig() {
   };
 }
 
-function getLiveViewMessageConfig() {
-  return getDashboardConfig().liveViewMessage ?? {
+function getLiveViewState() {
+  return state.payload.state?.liveView ?? {
     text: '',
     line1: '',
     line2: '',
-    blink: false,
+    blinkUntil: 0,
+    redUntil: 0,
   };
 }
 
@@ -91,37 +87,35 @@ function normalizeLiveMessageText(value) {
 }
 
 function syncLiveMessageEditor() {
-  if (!elements.liveMessageInput || !elements.liveMessageBlink) return;
+  if (!elements.liveMessageInput || !elements.liveMessageBlink || !elements.liveMessageRed) return;
 
-  const liveViewMessage = getLiveViewMessageConfig();
-  const nextText = liveViewMessage.text || [liveViewMessage.line1, liveViewMessage.line2].filter(Boolean).join('\n');
+  const liveView = getLiveViewState();
+  const nextText = liveView.text || [liveView.line1, liveView.line2].filter(Boolean).join('\n');
+  const now = Date.now();
+  const isBlinking = Number(liveView.blinkUntil || 0) > now;
+  const isRed = Number(liveView.redUntil || 0) > now;
 
   if (document.activeElement !== elements.liveMessageInput) {
     elements.liveMessageInput.value = nextText;
     state.ui.liveMessageDraft = nextText;
   }
 
-  elements.liveMessageBlink.textContent = `点滅: ${liveViewMessage.blink ? 'ON' : 'OFF'}`;
-  elements.liveMessageBlink.classList.toggle('is-active', Boolean(liveViewMessage.blink));
+  elements.liveMessageBlink.classList.toggle('is-active', isBlinking);
+  elements.liveMessageRed.classList.toggle('is-active', isRed);
+  elements.liveMessageForm.classList.toggle('is-blinking', isBlinking);
+  elements.liveMessageForm.classList.toggle('is-red', isRed);
 }
 
-async function saveLiveMessageConfig(patch = {}) {
-  const dashboardConfig = getDashboardConfig();
-  const currentMessage = getLiveViewMessageConfig();
+async function saveLiveMessageText(text) {
   const normalizedText = normalizeLiveMessageText(
-    patch.text ?? elements.liveMessageInput?.value ?? currentMessage.text ?? ''
+    text ?? elements.liveMessageInput?.value ?? getLiveViewState().text ?? ''
   );
 
-  const response = await fetch('/api/dashboard-config', {
-    method: 'PUT',
+  const response = await fetch('/api/live-message', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      showPerEventSyncButtons: dashboardConfig.showPerEventSyncButtons,
-      liveViewMessage: {
-        text: normalizedText,
-        blink: patch.blink ?? currentMessage.blink,
-      },
-      eventTypeColors: dashboardConfig.eventTypeColors,
+      text: normalizedText,
     }),
   });
 
@@ -131,7 +125,26 @@ async function saveLiveMessageConfig(patch = {}) {
 
   const result = await response.json();
   if (state.payload.state) {
-    state.payload.state.dashboardConfig = result.dashboardConfig;
+    state.payload.state.liveView = result.liveView;
+  }
+  syncLiveMessageEditor();
+  return true;
+}
+
+async function triggerLiveMessageEffect(effect) {
+  const response = await fetch('/api/live-message/effect', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ effect }),
+  });
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const result = await response.json();
+  if (state.payload.state) {
+    state.payload.state.liveView = result.liveView;
   }
   syncLiveMessageEditor();
   return true;
@@ -569,14 +582,18 @@ document.addEventListener('click', async (event) => {
   }
 
   if (event.target.closest('#live-message-blink')) {
-    const liveViewMessage = getLiveViewMessageConfig();
-    await saveLiveMessageConfig({ blink: !liveViewMessage.blink });
+    await triggerLiveMessageEffect('blink');
+    return;
+  }
+
+  if (event.target.closest('#live-message-red')) {
+    await triggerLiveMessageEffect('red');
   }
 });
 
 elements.liveMessageForm?.addEventListener('submit', async (event) => {
   event.preventDefault();
-  await saveLiveMessageConfig({ text: elements.liveMessageInput?.value ?? '' });
+  await saveLiveMessageText(elements.liveMessageInput?.value ?? '');
 });
 
 elements.liveMessageInput?.addEventListener('input', () => {

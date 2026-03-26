@@ -18,12 +18,6 @@ const SAVED_SCHEDULES_DIR = path.join(DATA_DIR, 'schedules');
 function createDefaultDashboardConfig() {
   return {
     showPerEventSyncButtons: false,
-    liveViewMessage: {
-      text: '',
-      line1: '',
-      line2: '',
-      blink: false,
-    },
     eventTypeColors: {
       normal: '#1d6b48',
       break: '#b07300',
@@ -38,6 +32,13 @@ const createDefaultState = () => ({
   globalOffsetSeconds: 0,
   isPaused: false,
   dashboardConfig: createDefaultDashboardConfig(),
+  liveView: {
+    text: '',
+    line1: '',
+    line2: '',
+    blinkUntil: 0,
+    redUntil: 0,
+  },
   timers: [
     {
       id: 1,
@@ -187,22 +188,9 @@ async function loadNamedSchedule(name) {
 function normalizeDashboardConfig(source) {
   const fallback = createDefaultDashboardConfig();
   const colors = source?.eventTypeColors ?? {};
-  const liveViewMessage = source?.liveViewMessage ?? {};
-  const normalizedText = String(liveViewMessage.text || '').replace(/\r\n/g, '\n').trim();
-  const textLines = normalizedText
-    ? normalizedText.split('\n').slice(0, 2).map((line) => line.trim().slice(0, 13))
-    : [];
-  const line1 = textLines[0] ?? String(liveViewMessage.line1 || fallback.liveViewMessage.line1).trim().slice(0, 13);
-  const line2 = textLines[1] ?? String(liveViewMessage.line2 || fallback.liveViewMessage.line2).trim().slice(0, 13);
 
   return {
     showPerEventSyncButtons: Boolean(source?.showPerEventSyncButtons),
-    liveViewMessage: {
-      text: [line1, line2].filter(Boolean).join('\n'),
-      line1,
-      line2,
-      blink: Boolean(liveViewMessage.blink),
-    },
     eventTypeColors: {
       normal: String(colors.normal || fallback.eventTypeColors.normal),
       break: String(colors.break || fallback.eventTypeColors.break),
@@ -433,12 +421,28 @@ async function initializeData() {
 function loadState(source) {
   const fallback = createDefaultState();
   const loadedTimers = Array.isArray(source?.timers) ? source.timers : fallback.timers;
+  const normalizedLiveViewText = String(source?.liveView?.text || '').replace(/\r\n/g, '\n').trim();
+  const liveViewLines = normalizedLiveViewText
+    ? normalizedLiveViewText.split('\n').slice(0, 2).map((line) => line.trim().slice(0, 13))
+    : [];
+  const fallbackDashboardMessage = source?.dashboardConfig?.liveViewMessage ?? {};
+  const line1 = liveViewLines[0]
+    ?? String(source?.liveView?.line1 || fallbackDashboardMessage.line1 || '').trim().slice(0, 13);
+  const line2 = liveViewLines[1]
+    ?? String(source?.liveView?.line2 || fallbackDashboardMessage.line2 || '').trim().slice(0, 13);
 
   return {
     globalOffsetSeconds: Number(source?.globalOffsetSeconds ?? fallback.globalOffsetSeconds),
     isPaused: Boolean(source?.isPaused ?? fallback.isPaused),
     currentScheduleId: source?.currentScheduleId ?? fallback.currentScheduleId,
     dashboardConfig: normalizeDashboardConfig(source?.dashboardConfig),
+    liveView: {
+      text: [line1, line2].filter(Boolean).join('\n'),
+      line1,
+      line2,
+      blinkUntil: Number(source?.liveView?.blinkUntil ?? 0),
+      redUntil: Number(source?.liveView?.redUntil ?? 0),
+    },
     timers: loadedTimers.map((timer, index) => {
       const fallbackTimer = fallback.timers[index] ?? fallback.timers[0];
       return {
@@ -573,6 +577,50 @@ app.put('/api/dashboard-config', async (req, res) => {
   state.dashboardConfig = normalizeDashboardConfig(req.body);
   await syncAll();
   res.json({ success: true, dashboardConfig: clone(state.dashboardConfig) });
+});
+
+app.post('/api/live-message', async (req, res) => {
+  const normalizedText = String(req.body?.text || '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .slice(0, 2)
+    .map((line) => line.trim().slice(0, 13))
+    .join('\n');
+  const [line1 = '', line2 = ''] = normalizedText ? normalizedText.split('\n') : [];
+
+  state.liveView = {
+    ...state.liveView,
+    text: normalizedText,
+    line1,
+    line2,
+  };
+
+  await syncAll();
+  res.json({ success: true, liveView: clone(state.liveView) });
+});
+
+app.post('/api/live-message/effect', async (req, res) => {
+  const effect = String(req.body?.effect || '');
+  const now = Date.now();
+  const durationMs = 10 * 1000;
+
+  if (effect === 'blink') {
+    state.liveView = {
+      ...state.liveView,
+      blinkUntil: now + durationMs,
+    };
+  } else if (effect === 'red') {
+    state.liveView = {
+      ...state.liveView,
+      redUntil: now + durationMs,
+    };
+  } else {
+    res.status(400).json({ success: false, message: 'Invalid live message effect.' });
+    return;
+  }
+
+  await syncAll();
+  res.json({ success: true, liveView: clone(state.liveView) });
 });
 
 app.post('/api/offset', async (req, res) => {
