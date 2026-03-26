@@ -77,6 +77,11 @@ body {
     linear-gradient(145deg, #020202 0%, #090909 40%, #151515 100%);
 }
 
+.race-clock-body {
+  overflow: hidden;
+  background: transparent;
+}
+
 .app-shell {
   width: min(1440px, calc(100% - 28px));
   margin: 0 auto;
@@ -1311,6 +1316,203 @@ pre {
   padding: 20px;
   display: grid;
   place-items: center;
+}
+
+.race-clock-shell {
+  min-height: 100vh;
+  padding: 0;
+  display: grid;
+  place-items: center;
+}
+
+.race-clock-stage {
+  width: min(500px, 100vw);
+  height: min(500px, 100vh);
+  display: grid;
+  place-items: center;
+}
+
+.race-clock-face {
+  --face-size: min(500px, 100vw, 100vh);
+  --face-padding: calc(var(--face-size) * 0.06);
+  position: relative;
+  width: var(--face-size);
+  height: var(--face-size);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.96), rgba(250, 246, 234, 0.98) 58%, rgba(231, 224, 208, 0.98) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(54, 54, 54, 0.12),
+    inset 0 10px 24px rgba(255, 255, 255, 0.68),
+    0 12px 34px rgba(18, 21, 24, 0.18);
+}
+
+.race-clock-face::before {
+  content: "";
+  position: absolute;
+  inset: calc(var(--face-size) * 0.032);
+  border-radius: 50%;
+  border: 1px solid rgba(60, 60, 60, 0.12);
+}
+
+.race-clock-marker {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: calc(var(--face-size) * 0.058);
+  border-radius: 999px;
+  background: rgba(45, 49, 55, 0.88);
+  transform:
+    translate(-50%, calc(-1 * (var(--face-size) / 2) + var(--face-padding)))
+    rotate(calc(var(--marker-index) * 30deg));
+  transform-origin: 50% calc((var(--face-size) / 2) - var(--face-padding));
+}
+
+.race-clock-marker.is-minor {
+  width: 2px;
+  height: calc(var(--face-size) * 0.03);
+  opacity: 0.34;
+}
+
+.race-clock-hand {
+  position: absolute;
+  left: 50%;
+  bottom: 50%;
+  border-radius: 999px;
+  transform-origin: 50% calc(100% - 8px);
+  transform: translateX(-50%) rotate(0deg);
+}
+
+.race-clock-hand.hour {
+  width: 12px;
+  height: calc(var(--face-size) * 0.28);
+  background: linear-gradient(180deg, #545962 0%, #2d3137 100%);
+}
+
+.race-clock-hand.minute {
+  width: 8px;
+  height: calc(var(--face-size) * 0.4);
+  background: linear-gradient(180deg, #60656e 0%, #383d45 100%);
+}
+
+.race-clock-hand.second {
+  width: 2px;
+  height: calc(var(--face-size) * 0.46);
+  background: linear-gradient(180deg, #ff665f 0%, #c83e39 100%);
+}
+
+.race-clock-hand.second::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--face-size) * -0.08);
+  width: 2px;
+  height: calc(var(--face-size) * 0.1);
+  background: inherit;
+  transform: translateX(-50%);
+  border-radius: inherit;
+}
+
+.race-clock-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2d3137;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 0 4px rgba(255, 251, 242, 0.92);
+}
+
+.race-clock-center::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d5534e;
+  transform: translate(-50%, -50%);
+}
+
+.race-clock-countdown {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  min-width: calc(var(--face-size) * 0.22);
+  max-width: calc(var(--face-size) * 0.42);
+  display: grid;
+  place-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(56, 60, 66, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(245, 239, 225, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 0 rgba(86, 78, 56, 0.08),
+    0 8px 18px rgba(30, 32, 35, 0.08);
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 4;
+}
+
+.race-clock-caption {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: clamp(1rem, 2.4vw, 1.14rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: rgba(45, 49, 55, 0.72);
+  white-space: nowrap;
+  text-transform: none;
+  z-index: 1;
+}
+
+.race-clock-remaining {
+  margin: 0;
+  font-size: clamp(1.46rem, 4.5vw, 1.96rem);
+  font-weight: 700;
+  line-height: 1.1;
+  color: #2d3137;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
+}
+
+.race-clock-next-title {
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  width: calc(var(--face-size) * 0.56);
+  min-height: 1.2em;
+  margin: 0;
+  transform: translateX(-50%);
+  font-size: clamp(1rem, 2.7vw, 1.16rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: rgba(45, 49, 55, 0.56);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  z-index: 1;
+}
+
+.race-clock-face.is-empty .race-clock-remaining {
+  font-size: clamp(1.05rem, 3.2vw, 1.3rem);
+  font-weight: 600;
+  color: rgba(45, 49, 55, 0.8);
+}
+
+.race-clock-face.is-empty .race-clock-next-title {
+  display: none;
 }
 
 .live-view-card {
