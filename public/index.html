@@ -103,6 +103,21 @@
           <div id="current-event" class="current-event-card">
             <p class="empty-state">現在進行中のイベントはありません。</p>
           </div>
+          <form id="live-message-form" class="live-message-editor">
+            <div class="live-message-editor-copy">
+              <p class="panel-kicker">Child Display</p>
+              <h3>子機向けメッセージ</h3>
+              <p>2行まで表示できます。各行 13 文字くらいを目安にしてください。</p>
+            </div>
+            <label class="live-message-field">
+              <span>表示メッセージ</span>
+              <textarea id="live-message-input" rows="2" maxlength="27" placeholder="まもなく開始&#10;準備をお願いします"></textarea>
+            </label>
+            <div class="live-message-actions">
+              <button type="submit" class="primary-button">送信</button>
+              <button id="live-message-blink" type="button" class="ghost-button">点滅: OFF</button>
+            </div>
+          </form>
         </section>
 
         <section class="panel panel-timeline">

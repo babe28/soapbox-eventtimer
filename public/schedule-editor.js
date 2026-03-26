@@ -139,8 +139,10 @@ function getDashboardConfig() {
   return editorState.rawState?.dashboardConfig ?? {
     showPerEventSyncButtons: false,
     liveViewMessage: {
+      text: '',
       line1: '',
       line2: '',
+      blink: false,
     },
     eventTypeColors: {},
   };
@@ -218,11 +220,12 @@ function renderTimerForm() {
 
 function renderDashboardForm() {
   const dashboardConfig = getDashboardConfig();
+  const liveViewMessage = dashboardConfig.liveViewMessage ?? {};
   editorElements.dashboardForm.elements.showPerEventSyncButtons.checked = Boolean(
     dashboardConfig.showPerEventSyncButtons
   );
-  editorElements.dashboardForm.elements.liveViewMessageLine1.value = dashboardConfig.liveViewMessage?.line1 ?? '';
-  editorElements.dashboardForm.elements.liveViewMessageLine2.value = dashboardConfig.liveViewMessage?.line2 ?? '';
+  editorElements.dashboardForm.elements.liveViewMessageLine1.value = liveViewMessage.line1 ?? '';
+  editorElements.dashboardForm.elements.liveViewMessageLine2.value = liveViewMessage.line2 ?? '';
 
   editorElements.eventTypeColors.innerHTML = DASHBOARD_TYPES
     .map((type) => `
@@ -530,6 +533,8 @@ editorElements.saveTimers.addEventListener('click', async () => {
 });
 
 editorElements.saveDashboard.addEventListener('click', async () => {
+  const line1 = editorElements.dashboardForm.elements.liveViewMessageLine1.value.trim();
+  const line2 = editorElements.dashboardForm.elements.liveViewMessageLine2.value.trim();
   const eventTypeColors = Object.fromEntries(
     DASHBOARD_TYPES.map((type) => [
       type,
@@ -543,8 +548,10 @@ editorElements.saveDashboard.addEventListener('click', async () => {
     body: JSON.stringify({
       showPerEventSyncButtons: editorElements.dashboardForm.elements.showPerEventSyncButtons.checked,
       liveViewMessage: {
-        line1: editorElements.dashboardForm.elements.liveViewMessageLine1.value.trim(),
-        line2: editorElements.dashboardForm.elements.liveViewMessageLine2.value.trim(),
+        text: [line1, line2].filter(Boolean).join('\n'),
+        line1,
+        line2,
+        blink: Boolean(getDashboardConfig().liveViewMessage?.blink),
       },
       eventTypeColors,
     }),

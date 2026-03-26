@@ -909,6 +909,70 @@ body {
   align-self: center;
 }
 
+.live-message-editor {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.18)),
+    rgba(255, 255, 255, 0.58);
+}
+
+:root[data-theme="dark"] .live-message-editor {
+  background:
+    linear-gradient(180deg, rgba(18, 36, 32, 0.96), rgba(9, 21, 19, 0.9)),
+    rgba(10, 24, 21, 0.84);
+}
+
+.live-message-editor-copy h3 {
+  margin: 0;
+}
+
+.live-message-editor-copy p:last-child {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.live-message-field {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.live-message-field textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 78px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.5;
+}
+
+:root[data-theme="dark"] .live-message-field textarea {
+  background: rgba(5, 15, 13, 0.88);
+  color: var(--ink);
+}
+
+.live-message-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.live-message-actions .ghost-button.is-active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
 .event-shift-actions {
   display: flex;
   gap: 10px;
@@ -1378,6 +1442,10 @@ pre {
   color: #ffffff;
 }
 
+.live-view-message.is-blinking {
+  animation: live-message-blink 1.15s steps(2, start) infinite;
+}
+
 @keyframes panel-rise {
   from {
     opacity: 0;
@@ -1399,6 +1467,20 @@ pre {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes live-message-blink {
+  0%,
+  48% {
+    opacity: 1;
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  }
+
+  50%,
+  100% {
+    opacity: 0.18;
+    box-shadow: 0 0 26px rgba(255, 255, 255, 0.24);
   }
 }
 

@@ -7,6 +7,7 @@ const state = {
   ui: {
     previewIndex: null,
     theme: 'light',
+    liveMessageDraft: '',
   },
 };
 
@@ -30,6 +31,9 @@ const elements = {
   finalEndValue: document.querySelector('#final-end-value'),
   finalEndLabel: document.querySelector('#final-end-label'),
   themeToggle: document.querySelector('#theme-toggle'),
+  liveMessageForm: document.querySelector('#live-message-form'),
+  liveMessageInput: document.querySelector('#live-message-input'),
+  liveMessageBlink: document.querySelector('#live-message-blink'),
 };
 
 function applyTheme(theme) {
@@ -52,6 +56,12 @@ function initializeTheme() {
 function getDashboardConfig() {
   return state.payload.state?.dashboardConfig ?? {
     showPerEventSyncButtons: false,
+    liveViewMessage: {
+      text: '',
+      line1: '',
+      line2: '',
+      blink: false,
+    },
     eventTypeColors: {
       normal: '#1d6b48',
       break: '#b07300',
@@ -60,6 +70,71 @@ function getDashboardConfig() {
       race: '#7d245c',
     },
   };
+}
+
+function getLiveViewMessageConfig() {
+  return getDashboardConfig().liveViewMessage ?? {
+    text: '',
+    line1: '',
+    line2: '',
+    blink: false,
+  };
+}
+
+function normalizeLiveMessageText(value) {
+  return String(value || '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .slice(0, 2)
+    .map((line) => line.trim().slice(0, 13))
+    .join('\n');
+}
+
+function syncLiveMessageEditor() {
+  if (!elements.liveMessageInput || !elements.liveMessageBlink) return;
+
+  const liveViewMessage = getLiveViewMessageConfig();
+  const nextText = liveViewMessage.text || [liveViewMessage.line1, liveViewMessage.line2].filter(Boolean).join('\n');
+
+  if (document.activeElement !== elements.liveMessageInput) {
+    elements.liveMessageInput.value = nextText;
+    state.ui.liveMessageDraft = nextText;
+  }
+
+  elements.liveMessageBlink.textContent = `点滅: ${liveViewMessage.blink ? 'ON' : 'OFF'}`;
+  elements.liveMessageBlink.classList.toggle('is-active', Boolean(liveViewMessage.blink));
+}
+
+async function saveLiveMessageConfig(patch = {}) {
+  const dashboardConfig = getDashboardConfig();
+  const currentMessage = getLiveViewMessageConfig();
+  const normalizedText = normalizeLiveMessageText(
+    patch.text ?? elements.liveMessageInput?.value ?? currentMessage.text ?? ''
+  );
+
+  const response = await fetch('/api/dashboard-config', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      showPerEventSyncButtons: dashboardConfig.showPerEventSyncButtons,
+      liveViewMessage: {
+        text: normalizedText,
+        blink: patch.blink ?? currentMessage.blink,
+      },
+      eventTypeColors: dashboardConfig.eventTypeColors,
+    }),
+  });
+
+  if (!response.ok) {
+    return false;
+  }
+
+  const result = await response.json();
+  if (state.payload.state) {
+    state.payload.state.dashboardConfig = result.dashboardConfig;
+  }
+  syncLiveMessageEditor();
+  return true;
 }
 
 function formatClock(value) {
@@ -379,6 +454,7 @@ function renderStatic() {
   renderCurrentEvent();
   renderSchedule();
   renderTimers();
+  syncLiveMessageEditor();
 }
 
 function updateLiveView() {
@@ -489,7 +565,22 @@ document.addEventListener('click', async (event) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: resyncButton.dataset.resync }),
     });
+    return;
   }
+
+  if (event.target.closest('#live-message-blink')) {
+    const liveViewMessage = getLiveViewMessageConfig();
+    await saveLiveMessageConfig({ blink: !liveViewMessage.blink });
+  }
+});
+
+elements.liveMessageForm?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  await saveLiveMessageConfig({ text: elements.liveMessageInput?.value ?? '' });
+});
+
+elements.liveMessageInput?.addEventListener('input', () => {
+  state.ui.liveMessageDraft = elements.liveMessageInput.value;
 });
 
 setInterval(() => {

@@ -50,6 +50,7 @@ function renderMessage() {
   const hasMessage = line1 || line2;
 
   liveElements.message.hidden = !hasMessage;
+  liveElements.message.classList.toggle('is-blinking', Boolean(message.blink) && hasMessage);
   liveElements.messageLine1.textContent = line1 || '\u00A0';
   liveElements.messageLine2.textContent = line2 || '\u00A0';
 }

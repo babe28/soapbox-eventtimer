@@ -19,8 +19,10 @@ function createDefaultDashboardConfig() {
   return {
     showPerEventSyncButtons: false,
     liveViewMessage: {
+      text: '',
       line1: '',
       line2: '',
+      blink: false,
     },
     eventTypeColors: {
       normal: '#1d6b48',
@@ -186,12 +188,20 @@ function normalizeDashboardConfig(source) {
   const fallback = createDefaultDashboardConfig();
   const colors = source?.eventTypeColors ?? {};
   const liveViewMessage = source?.liveViewMessage ?? {};
+  const normalizedText = String(liveViewMessage.text || '').replace(/\r\n/g, '\n').trim();
+  const textLines = normalizedText
+    ? normalizedText.split('\n').slice(0, 2).map((line) => line.trim().slice(0, 13))
+    : [];
+  const line1 = textLines[0] ?? String(liveViewMessage.line1 || fallback.liveViewMessage.line1).trim().slice(0, 13);
+  const line2 = textLines[1] ?? String(liveViewMessage.line2 || fallback.liveViewMessage.line2).trim().slice(0, 13);
 
   return {
     showPerEventSyncButtons: Boolean(source?.showPerEventSyncButtons),
     liveViewMessage: {
-      line1: String(liveViewMessage.line1 || fallback.liveViewMessage.line1).trim().slice(0, 13),
-      line2: String(liveViewMessage.line2 || fallback.liveViewMessage.line2).trim().slice(0, 13),
+      text: [line1, line2].filter(Boolean).join('\n'),
+      line1,
+      line2,
+      blink: Boolean(liveViewMessage.blink),
     },
     eventTypeColors: {
       normal: String(colors.normal || fallback.eventTypeColors.normal),
