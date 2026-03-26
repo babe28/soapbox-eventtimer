@@ -9,11 +9,13 @@
   <body class="live-view-body">
     <main class="live-view-shell">
       <section id="live-view" class="live-view-card" aria-live="polite">
-        <p class="live-view-kicker">Now On Stage</p>
+        <div class="live-view-topbar">
+          <p class="live-view-kicker">Now On Stage</p>
+          <p id="live-browser-time" class="live-view-browser-time">----/--/--(--) --:--:--</p>
+        </div>
         <div class="live-view-main">
           <div class="live-view-copy">
-            <h1 id="live-title">イベント待機中</h1>
-            <p id="live-subtitle">現在進行中のプログラムはありません</p>
+            <h1><span id="live-title">イベント待機中</span><span id="live-subtitle" class="live-view-subtitle-inline">現在進行中のプログラムはありません</span></h1>
           </div>
           <div class="live-view-timer">
             <span>残り時間</span>

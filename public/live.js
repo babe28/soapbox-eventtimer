@@ -10,6 +10,7 @@ const liveSocket = io();
 
 const liveElements = {
   root: document.querySelector('#live-view'),
+  browserTime: document.querySelector('#live-browser-time'),
   title: document.querySelector('#live-title'),
   subtitle: document.querySelector('#live-subtitle'),
   remaining: document.querySelector('#live-remaining'),
@@ -27,6 +28,17 @@ function formatSeconds(totalSeconds) {
   const minutes = String(Math.floor((safeSeconds % 3600) / 60)).padStart(2, '0');
   const seconds = String(safeSeconds % 60).padStart(2, '0');
   return `${hours}:${minutes}:${seconds}`;
+}
+
+function formatBrowserDateTime(value) {
+  const date = new Date(value);
+  const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const weekday = weekdays[date.getDay()];
+  const time = date.toLocaleTimeString('ja-JP', { hour12: false });
+  return `${year}/${month}/${day}(${weekday}) ${time}`;
 }
 
 function getDisplayedNow() {
@@ -67,15 +79,21 @@ function renderMessage() {
   const line2 = String(message.line2 || '').trim();
   const hasMessage = line1 || line2;
   const now = Date.now();
+  const isBlinking = Number(message.blinkUntil || 0) > now;
 
   liveElements.message.hidden = !hasMessage;
-  liveElements.message.classList.toggle('is-blinking', Number(message.blinkUntil || 0) > now && hasMessage);
+  liveElements.message.classList.toggle('is-blinking', isBlinking && hasMessage);
+  liveElements.root.classList.toggle('is-blinking', isBlinking);
   liveElements.root.classList.toggle('is-red-alert', Number(message.redUntil || 0) > now);
   liveElements.messageLine1.textContent = line1 || '\u00A0';
   liveElements.messageLine2.textContent = line2 || '\u00A0';
 }
 
 function renderLiveView() {
+  if (liveElements.browserTime) {
+    liveElements.browserTime.textContent = formatBrowserDateTime(Date.now());
+  }
+
   const currentItem = getCurrentItem();
 
   if (!currentItem) {
@@ -100,9 +118,9 @@ function renderLiveView() {
     : 0;
 
   liveElements.title.textContent = currentItem.title;
-  liveElements.subtitle.textContent = currentItem.subTitle || currentItem.section || ' ';
+  liveElements.subtitle.textContent = currentItem.subTitle ? ` / ${currentItem.subTitle}` : '';
   liveElements.remaining.textContent = formatSeconds(remaining);
-  liveElements.progressLabel.textContent = `${currentItem.section} / ${currentItem.type}`;
+  liveElements.progressLabel.textContent = '進行状況';
   liveElements.progressValue.textContent = `${Math.round(progress)}%`;
   liveElements.progressBar.style.width = `${progress}%`;
   liveElements.progressBar.className = getProgressStage(progress);
