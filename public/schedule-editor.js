@@ -62,7 +62,7 @@ function initializeTheme() {
 function toDatetimeLocal(value) {
   const date = new Date(value);
   const offset = date.getTimezoneOffset();
-  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
+  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 19);
 }
 
 function fromDatetimeLocal(value) {

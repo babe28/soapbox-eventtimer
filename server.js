@@ -9,6 +9,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const PORT = 3333;
+const LIVE_MESSAGE_LINE_LIMIT = 36;
 const DATA_DIR = path.join(__dirname, 'data');
 const STATE_PATH = path.join(DATA_DIR, 'state.json');
 const SCHEDULE_PATH = path.join(DATA_DIR, 'schedule.json');
@@ -423,13 +424,13 @@ function loadState(source) {
   const loadedTimers = Array.isArray(source?.timers) ? source.timers : fallback.timers;
   const normalizedLiveViewText = String(source?.liveView?.text || '').replace(/\r\n/g, '\n').trim();
   const liveViewLines = normalizedLiveViewText
-    ? normalizedLiveViewText.split('\n').slice(0, 2).map((line) => line.trim().slice(0, 13))
+    ? normalizedLiveViewText.split('\n').slice(0, 2).map((line) => line.trim().slice(0, LIVE_MESSAGE_LINE_LIMIT))
     : [];
   const fallbackDashboardMessage = source?.dashboardConfig?.liveViewMessage ?? {};
   const line1 = liveViewLines[0]
-    ?? String(source?.liveView?.line1 || fallbackDashboardMessage.line1 || '').trim().slice(0, 13);
+    ?? String(source?.liveView?.line1 || fallbackDashboardMessage.line1 || '').trim().slice(0, LIVE_MESSAGE_LINE_LIMIT);
   const line2 = liveViewLines[1]
-    ?? String(source?.liveView?.line2 || fallbackDashboardMessage.line2 || '').trim().slice(0, 13);
+    ?? String(source?.liveView?.line2 || fallbackDashboardMessage.line2 || '').trim().slice(0, LIVE_MESSAGE_LINE_LIMIT);
 
   return {
     globalOffsetSeconds: Number(source?.globalOffsetSeconds ?? fallback.globalOffsetSeconds),
@@ -584,7 +585,7 @@ app.post('/api/live-message', async (req, res) => {
     .replace(/\r\n/g, '\n')
     .split('\n')
     .slice(0, 2)
-    .map((line) => line.trim().slice(0, 13))
+    .map((line) => line.trim().slice(0, LIVE_MESSAGE_LINE_LIMIT))
     .join('\n');
   const [line1 = '', line2 = ''] = normalizedText ? normalizedText.split('\n') : [];
 

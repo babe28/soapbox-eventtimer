@@ -1,0 +1,10 @@
+{
+  "name": "Soapbox Event Timer Live View",
+  "short_name": "Event Timer",
+  "start_url": "/live.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "lang": "ja",
+  "orientation": "landscape"
+}

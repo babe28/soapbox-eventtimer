@@ -3,14 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#050505" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Event Timer" />
     <title>現在進行表示</title>
+    <link rel="manifest" href="/live.webmanifest" />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body class="live-view-body">
     <main class="live-view-shell">
       <section id="live-view" class="live-view-card" aria-live="polite">
         <div class="live-view-topbar">
-          <p class="live-view-kicker">Now On Stage</p>
+          <button id="live-fullscreen-toggle" class="live-view-fullscreen-button" type="button">全画面表示</button>
+          <p id="live-offset-status" class="live-view-offset-status">定刻</p>
           <p id="live-browser-time" class="live-view-browser-time">----/--/--(--) --:--:--</p>
         </div>
         <div class="live-view-main">
@@ -18,12 +25,11 @@
             <h1><span id="live-title">イベント待機中</span><span id="live-subtitle" class="live-view-subtitle-inline">現在進行中のプログラムはありません</span></h1>
           </div>
           <div class="live-view-timer">
-            <span>残り時間</span>
-            <strong id="live-remaining">--:--:--</strong>
+            <div class="live-view-timer-line">
+              <span>残り時間</span>
+              <strong id="live-remaining">--<small>分</small>--<small>秒</small></strong>
+            </div>
           </div>
-        </div>
-        <div class="live-view-progress-meta">
-          <span id="live-progress-label">進行状況</span>
         </div>
         <div class="live-view-progress" aria-hidden="true">
           <span id="live-progress-bar"><strong id="live-progress-value">0%</strong></span>
