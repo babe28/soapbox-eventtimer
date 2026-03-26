@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Schedule Editor</title>
+    <title>スケジュールエディタ</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -121,8 +121,43 @@
               <input name="showPerEventSyncButtons" type="checkbox" />
               <span>各イベントの強制同期ボタンを表示する</span>
             </label>
+            <div class="live-view-config">
+              <div class="live-view-config-copy">
+                <h3>子機表示メッセージ</h3>
+                <p>現在進行のみ表示する専用画面に、最大 13 文字 x 2 行のメッセージを表示できます。</p>
+              </div>
+              <div class="live-view-message-grid">
+                <label>
+                  <span>1行目</span>
+                  <input name="liveViewMessageLine1" type="text" maxlength="13" placeholder="まもなく開始" />
+                </label>
+                <label>
+                  <span>2行目</span>
+                  <input name="liveViewMessageLine2" type="text" maxlength="13" placeholder="準備をお願いします" />
+                </label>
+              </div>
+            </div>
             <div id="event-type-colors" class="color-config-list"></div>
           </form>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-kicker">Live View</p>
+              <h2>子機画面 QRコード</h2>
+            </div>
+          </div>
+          <div class="live-view-access">
+            <div class="live-view-access-copy">
+              <p>スマホやタブレットでこの QRコードを読み取ると、現在進行のみ表示する専用画面を直接開けます。</p>
+              <a id="live-view-link" class="nav-link live-view-link" href="/live.html" target="_blank" rel="noreferrer">子機画面を開く</a>
+              <code id="live-view-url" class="live-view-url">/live.html</code>
+            </div>
+            <div class="live-view-qr-card">
+              <img id="live-view-qr" alt="子機画面QRコード" />
+            </div>
+          </div>
         </section>
 
         <section class="panel panel-secondary">
@@ -265,7 +300,7 @@
                 <span class="api-method">PUT</span>
                 <code>/api/dashboard-config</code>
               </div>
-              <p>ダッシュボード表示設定を保存します。</p>
+              <p>ダッシュボード表示設定と子機画面メッセージを保存します。</p>
             </article>
             <article class="api-card">
               <div class="api-head">

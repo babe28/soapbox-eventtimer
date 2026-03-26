@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>現在進行表示</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body class="live-view-body">
+    <main class="live-view-shell">
+      <section id="live-view" class="live-view-card" aria-live="polite">
+        <p class="live-view-kicker">Now On Stage</p>
+        <div class="live-view-main">
+          <div class="live-view-copy">
+            <h1 id="live-title">イベント待機中</h1>
+            <p id="live-subtitle">現在進行中のプログラムはありません</p>
+          </div>
+          <div class="live-view-timer">
+            <span>残り時間</span>
+            <strong id="live-remaining">--:--:--</strong>
+          </div>
+        </div>
+        <div class="live-view-progress-meta">
+          <span id="live-progress-label">進行状況</span>
+          <span id="live-progress-value">0%</span>
+        </div>
+        <div class="live-view-progress" aria-hidden="true">
+          <span id="live-progress-bar"></span>
+        </div>
+        <div id="live-message" class="live-view-message" hidden>
+          <p id="live-message-line1"></p>
+          <p id="live-message-line2"></p>
+        </div>
+      </section>
+    </main>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/live.js"></script>
+  </body>
+</html>

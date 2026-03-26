@@ -18,6 +18,9 @@ const editorElements = {
   timerForm: document.querySelector('#timer-form'),
   dashboardForm: document.querySelector('#dashboard-form'),
   eventTypeColors: document.querySelector('#event-type-colors'),
+  liveViewLink: document.querySelector('#live-view-link'),
+  liveViewUrl: document.querySelector('#live-view-url'),
+  liveViewQr: document.querySelector('#live-view-qr'),
   addEntry: document.querySelector('#add-entry'),
   duplicateEntry: document.querySelector('#duplicate-entry'),
   deleteEntry: document.querySelector('#delete-entry'),
@@ -135,8 +138,25 @@ function clearDragState() {
 function getDashboardConfig() {
   return editorState.rawState?.dashboardConfig ?? {
     showPerEventSyncButtons: false,
+    liveViewMessage: {
+      line1: '',
+      line2: '',
+    },
     eventTypeColors: {},
   };
+}
+
+function getLiveViewUrl() {
+  return new URL('/live.html', window.location.origin).toString();
+}
+
+function renderLiveViewAccess() {
+  const liveViewUrl = getLiveViewUrl();
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=0&data=${encodeURIComponent(liveViewUrl)}`;
+
+  editorElements.liveViewLink.href = liveViewUrl;
+  editorElements.liveViewUrl.textContent = liveViewUrl;
+  editorElements.liveViewQr.src = qrUrl;
 }
 
 function renderList() {
@@ -201,6 +221,8 @@ function renderDashboardForm() {
   editorElements.dashboardForm.elements.showPerEventSyncButtons.checked = Boolean(
     dashboardConfig.showPerEventSyncButtons
   );
+  editorElements.dashboardForm.elements.liveViewMessageLine1.value = dashboardConfig.liveViewMessage?.line1 ?? '';
+  editorElements.dashboardForm.elements.liveViewMessageLine2.value = dashboardConfig.liveViewMessage?.line2 ?? '';
 
   editorElements.eventTypeColors.innerHTML = DASHBOARD_TYPES
     .map((type) => `
@@ -243,6 +265,7 @@ function renderAll() {
   renderForm();
   renderTimerForm();
   renderDashboardForm();
+  renderLiveViewAccess();
   renderSavedScheduleControls();
   renderPreview();
   renderProgressLog();
@@ -519,6 +542,10 @@ editorElements.saveDashboard.addEventListener('click', async () => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       showPerEventSyncButtons: editorElements.dashboardForm.elements.showPerEventSyncButtons.checked,
+      liveViewMessage: {
+        line1: editorElements.dashboardForm.elements.liveViewMessageLine1.value.trim(),
+        line2: editorElements.dashboardForm.elements.liveViewMessageLine2.value.trim(),
+      },
       eventTypeColors,
     }),
   });

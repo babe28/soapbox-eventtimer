@@ -18,6 +18,10 @@ const SAVED_SCHEDULES_DIR = path.join(DATA_DIR, 'schedules');
 function createDefaultDashboardConfig() {
   return {
     showPerEventSyncButtons: false,
+    liveViewMessage: {
+      line1: '',
+      line2: '',
+    },
     eventTypeColors: {
       normal: '#1d6b48',
       break: '#b07300',
@@ -181,9 +185,14 @@ async function loadNamedSchedule(name) {
 function normalizeDashboardConfig(source) {
   const fallback = createDefaultDashboardConfig();
   const colors = source?.eventTypeColors ?? {};
+  const liveViewMessage = source?.liveViewMessage ?? {};
 
   return {
     showPerEventSyncButtons: Boolean(source?.showPerEventSyncButtons),
+    liveViewMessage: {
+      line1: String(liveViewMessage.line1 || fallback.liveViewMessage.line1).trim().slice(0, 13),
+      line2: String(liveViewMessage.line2 || fallback.liveViewMessage.line2).trim().slice(0, 13),
+    },
     eventTypeColors: {
       normal: String(colors.normal || fallback.eventTypeColors.normal),
       break: String(colors.break || fallback.eventTypeColors.break),
