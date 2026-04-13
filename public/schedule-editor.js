@@ -21,6 +21,9 @@ const editorElements = {
   liveViewLink: document.querySelector('#live-view-link'),
   liveViewUrl: document.querySelector('#live-view-url'),
   liveViewQr: document.querySelector('#live-view-qr'),
+  raceClockLink: document.querySelector('#race-clock-link'),
+  raceClockUrl: document.querySelector('#race-clock-url'),
+  raceClockQr: document.querySelector('#race-clock-qr'),
   addEntry: document.querySelector('#add-entry'),
   duplicateEntry: document.querySelector('#duplicate-entry'),
   deleteEntry: document.querySelector('#delete-entry'),
@@ -67,6 +70,46 @@ function toDatetimeLocal(value) {
 
 function fromDatetimeLocal(value) {
   return new Date(value).toISOString();
+}
+
+function formatMinutesFromSeconds(seconds) {
+  const minutes = Number(seconds) / 60;
+  if (!Number.isFinite(minutes)) return '';
+  return String(Math.round(minutes * 100) / 100);
+}
+
+function getEndIsoString(start, durationSeconds) {
+  const startTime = new Date(start).getTime();
+  const duration = Number(durationSeconds);
+  if (!Number.isFinite(startTime) || !Number.isFinite(duration)) return '';
+  return new Date(startTime + duration * 1000).toISOString();
+}
+
+function updateEndField() {
+  const form = editorElements.entryForm.elements;
+  if (!form.start.value || !form.duration.value) {
+    form.end.value = '';
+    return;
+  }
+
+  const end = getEndIsoString(fromDatetimeLocal(form.start.value), Number(form.duration.value));
+  form.end.value = end ? toDatetimeLocal(end) : '';
+}
+
+function syncDurationFromSeconds() {
+  const form = editorElements.entryForm.elements;
+  const seconds = Number(form.duration.value);
+  if (!Number.isFinite(seconds) || seconds <= 0) return;
+  form.durationMinutes.value = formatMinutesFromSeconds(seconds);
+  updateEndField();
+}
+
+function syncDurationFromMinutes() {
+  const form = editorElements.entryForm.elements;
+  const minutes = Number(form.durationMinutes.value);
+  if (!Number.isFinite(minutes) || minutes <= 0) return;
+  form.duration.value = String(Math.max(1, Math.round(minutes * 60)));
+  updateEndField();
 }
 
 function generateEntryId() {
@@ -146,13 +189,24 @@ function getLiveViewUrl() {
   return new URL('/live.html', window.location.origin).toString();
 }
 
+function getRaceClockUrl() {
+  return new URL('/race-clock.html', window.location.origin).toString();
+}
+
+function getQrUrl(targetUrl) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=0&data=${encodeURIComponent(targetUrl)}`;
+}
+
 function renderLiveViewAccess() {
   const liveViewUrl = getLiveViewUrl();
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=0&data=${encodeURIComponent(liveViewUrl)}`;
+  const raceClockUrl = getRaceClockUrl();
 
   editorElements.liveViewLink.href = liveViewUrl;
   editorElements.liveViewUrl.textContent = liveViewUrl;
-  editorElements.liveViewQr.src = qrUrl;
+  editorElements.liveViewQr.src = getQrUrl(liveViewUrl);
+  editorElements.raceClockLink.href = raceClockUrl;
+  editorElements.raceClockUrl.textContent = raceClockUrl;
+  editorElements.raceClockQr.src = getQrUrl(raceClockUrl);
 }
 
 function renderList() {
@@ -170,7 +224,8 @@ function renderList() {
           <span class="schedule-meta">${item.section} / ${item.type}</span>
         </div>
         <div class="schedule-side">
-          <strong>${new Date(item.start).toLocaleString('ja-JP', { hour12: false })}</strong>
+          <strong>開始: ${new Date(item.start).toLocaleString('ja-JP', { hour12: false })}</strong>
+          <strong>終了: ${new Date(getEndIsoString(item.start, item.duration)).toLocaleString('ja-JP', { hour12: false })}</strong>
           <span class="schedule-meta">${item.duration}秒</span>
         </div>
       </article>
@@ -190,8 +245,10 @@ function renderForm() {
   editorElements.entryForm.elements.subTitle.value = entry.subTitle;
   editorElements.entryForm.elements.start.value = toDatetimeLocal(entry.start);
   editorElements.entryForm.elements.duration.value = entry.duration;
+  editorElements.entryForm.elements.durationMinutes.value = formatMinutesFromSeconds(entry.duration);
   editorElements.entryForm.elements.section.value = entry.section;
   editorElements.entryForm.elements.type.value = entry.type;
+  updateEndField();
 }
 
 function renderTimerForm() {
@@ -397,12 +454,24 @@ editorElements.entryForm.addEventListener('submit', (event) => {
   entry.title = form.title.value.trim();
   entry.subTitle = form.subTitle.value.trim();
   entry.start = fromDatetimeLocal(form.start.value);
-  entry.duration = Number(form.duration.value);
+  entry.duration = Math.max(1, Number(form.duration.value));
   entry.section = form.section.value.trim();
   entry.type = form.type.value;
   editorState.selectedId = entry.id;
   markDirty(true);
   renderAll();
+});
+
+editorElements.entryForm.elements.duration.addEventListener('input', () => {
+  syncDurationFromSeconds();
+});
+
+editorElements.entryForm.elements.durationMinutes.addEventListener('input', () => {
+  syncDurationFromMinutes();
+});
+
+editorElements.entryForm.elements.start.addEventListener('input', () => {
+  updateEndField();
 });
 
 editorElements.duplicateEntry.addEventListener('click', () => {

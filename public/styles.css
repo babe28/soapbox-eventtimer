@@ -570,6 +570,13 @@ body {
   gap: 14px;
 }
 
+.editor-list {
+  max-height: min(72vh, 920px);
+  overflow: auto;
+  align-content: start;
+  padding-right: 6px;
+}
+
 .schedule-list {
   align-content: start;
 }
@@ -1132,13 +1139,28 @@ body {
 
 .live-view-access {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 420px);
   gap: 18px;
   align-items: center;
 }
 
 .live-view-access-copy {
   display: grid;
+  gap: 12px;
+}
+
+.live-view-access-block {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.live-view-qr-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -1167,6 +1189,10 @@ body {
 
 :root[data-theme="dark"] .live-view-qr-card {
   background: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme="dark"] .live-view-access-block {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .live-view-qr-card img {
@@ -1902,6 +1928,7 @@ pre {
   .json-grid,
   .editor-form,
   .live-view-access,
+  .live-view-qr-grid,
   .saved-schedule-tools,
   .timer-actions {
     grid-template-columns: 1fr;

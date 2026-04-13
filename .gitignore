@@ -4,3 +4,5 @@ build/
 .env
 .DS_Store
 AGENTS.md
+data/schedules/
+logs/

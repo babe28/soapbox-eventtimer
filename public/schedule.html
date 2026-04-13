@@ -76,6 +76,14 @@
               <input name="duration" type="number" min="1" required />
             </label>
             <label>
+              <span>分</span>
+              <input name="durationMinutes" type="number" min="0.01" step="0.01" required />
+            </label>
+            <label>
+              <span>終了時刻</span>
+              <input name="end" type="datetime-local" step="1" readonly />
+            </label>
+            <label>
               <span>セクション</span>
               <input name="section" type="text" required />
             </label>
@@ -129,17 +137,29 @@
           <div class="panel-head">
             <div>
               <p class="panel-kicker">Live View</p>
-              <h2>子機画面 QRコード</h2>
+              <h2>子機画面 / レースクロック QRコード</h2>
             </div>
           </div>
           <div class="live-view-access">
             <div class="live-view-access-copy">
-              <p>スマホやタブレットでこの QRコードを読み取ると、現在進行のみ表示する専用画面を直接開けます。</p>
-              <a id="live-view-link" class="nav-link live-view-link" href="/live.html" target="_blank" rel="noreferrer">子機画面を開く</a>
-              <code id="live-view-url" class="live-view-url">/live.html</code>
+              <article class="live-view-access-block">
+                <p>スマホやタブレットで QRコードを読み取ると、現在進行のみ表示する子機画面を直接開けます。</p>
+                <a id="live-view-link" class="nav-link live-view-link" href="/live.html" target="_blank" rel="noreferrer">子機画面を開く</a>
+                <code id="live-view-url" class="live-view-url">/live.html</code>
+              </article>
+              <article class="live-view-access-block">
+                <p>レースクロック専用の表示画面です。会場モニターやタブレットで直接開けます。</p>
+                <a id="race-clock-link" class="nav-link live-view-link" href="/race-clock.html" target="_blank" rel="noreferrer">レースクロックを開く</a>
+                <code id="race-clock-url" class="live-view-url">/race-clock.html</code>
+              </article>
             </div>
-            <div class="live-view-qr-card">
-              <img id="live-view-qr" alt="子機画面QRコード" />
+            <div class="live-view-qr-grid">
+              <div class="live-view-qr-card">
+                <img id="live-view-qr" alt="子機画面QRコード" />
+              </div>
+              <div class="live-view-qr-card">
+                <img id="race-clock-qr" alt="レースクロックQRコード" />
+              </div>
             </div>
           </div>
         </section>
