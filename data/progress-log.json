@@ -30,5 +30,221 @@
     "detail": "手動オフセット 30秒",
     "beforeOffsetSeconds": -30,
     "afterOffsetSeconds": 0
+  },
+  {
+    "id": "log_1776045882257",
+    "timestamp": "2026-04-13T02:04:42.257Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": 0,
+    "afterOffsetSeconds": 0
+  },
+  {
+    "id": "log_1776045888111",
+    "timestamp": "2026-04-13T02:04:48.111Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": 0,
+    "afterOffsetSeconds": -6
+  },
+  {
+    "id": "log_1776045889049",
+    "timestamp": "2026-04-13T02:04:49.049Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -6,
+    "afterOffsetSeconds": -6
+  },
+  {
+    "id": "log_1776045889779",
+    "timestamp": "2026-04-13T02:04:49.779Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -6,
+    "afterOffsetSeconds": -7
+  },
+  {
+    "id": "log_1776045906964",
+    "timestamp": "2026-04-13T02:05:06.964Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -7,
+    "afterOffsetSeconds": -7
+  },
+  {
+    "id": "log_1776045918488",
+    "timestamp": "2026-04-13T02:05:18.488Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -7,
+    "afterOffsetSeconds": -19
+  },
+  {
+    "id": "log_1776045927661",
+    "timestamp": "2026-04-13T02:05:27.661Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -19,
+    "afterOffsetSeconds": -19
+  },
+  {
+    "id": "log_1776045937737",
+    "timestamp": "2026-04-13T02:05:37.737Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -19,
+    "afterOffsetSeconds": -30
+  },
+  {
+    "id": "log_1776045951977",
+    "timestamp": "2026-04-13T02:05:51.977Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -30,
+    "afterOffsetSeconds": -30
+  },
+  {
+    "id": "log_1776045956053",
+    "timestamp": "2026-04-13T02:05:56.053Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -30,
+    "afterOffsetSeconds": -35
+  },
+  {
+    "id": "log_1776046414004",
+    "timestamp": "2026-04-13T02:13:34.004Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -35,
+    "afterOffsetSeconds": -35
+  },
+  {
+    "id": "log_1776046418897",
+    "timestamp": "2026-04-13T02:13:38.897Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -35,
+    "afterOffsetSeconds": -40
+  },
+  {
+    "id": "log_1776046419909",
+    "timestamp": "2026-04-13T02:13:39.909Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -40,
+    "afterOffsetSeconds": -40
+  },
+  {
+    "id": "log_1776046420625",
+    "timestamp": "2026-04-13T02:13:40.625Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -40,
+    "afterOffsetSeconds": -41
+  },
+  {
+    "id": "log_1776046431855",
+    "timestamp": "2026-04-13T02:13:51.855Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -41,
+    "afterOffsetSeconds": -41
+  },
+  {
+    "id": "log_1776046435329",
+    "timestamp": "2026-04-13T02:13:55.329Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -41,
+    "afterOffsetSeconds": -45
+  },
+  {
+    "id": "log_1776046437182",
+    "timestamp": "2026-04-13T02:13:57.182Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -45,
+    "afterOffsetSeconds": -45
+  },
+  {
+    "id": "log_1776046437575",
+    "timestamp": "2026-04-13T02:13:57.575Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -45,
+    "afterOffsetSeconds": -46
+  },
+  {
+    "id": "log_1776046438933",
+    "timestamp": "2026-04-13T02:13:58.933Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -46,
+    "afterOffsetSeconds": -46
+  },
+  {
+    "id": "log_1776046439260",
+    "timestamp": "2026-04-13T02:13:59.260Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -46,
+    "afterOffsetSeconds": -47
+  },
+  {
+    "id": "log_1776046442490",
+    "timestamp": "2026-04-13T02:14:02.490Z",
+    "action": "offset",
+    "detail": "手動オフセット 47秒",
+    "beforeOffsetSeconds": -47,
+    "afterOffsetSeconds": 0
+  },
+  {
+    "id": "log_1776046458204",
+    "timestamp": "2026-04-13T02:14:18.204Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": 0,
+    "afterOffsetSeconds": 0
+  },
+  {
+    "id": "log_1776046463512",
+    "timestamp": "2026-04-13T02:14:23.512Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": 0,
+    "afterOffsetSeconds": -6
+  },
+  {
+    "id": "log_1776046512506",
+    "timestamp": "2026-04-13T02:15:12.506Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -6,
+    "afterOffsetSeconds": -6
+  },
+  {
+    "id": "log_1776046516925",
+    "timestamp": "2026-04-13T02:15:16.925Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -6,
+    "afterOffsetSeconds": -11
+  },
+  {
+    "id": "log_1776046528284",
+    "timestamp": "2026-04-13T02:15:28.284Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -11,
+    "afterOffsetSeconds": -11
+  },
+  {
+    "id": "log_1776046530082",
+    "timestamp": "2026-04-13T02:15:30.082Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -11,
+    "afterOffsetSeconds": -13
   }
 ]

@@ -16,6 +16,7 @@ const raceClockElements = {
   hourHand: document.querySelector('#race-clock-hour-hand'),
   minuteHand: document.querySelector('#race-clock-minute-hand'),
   secondHand: document.querySelector('#race-clock-second-hand'),
+  pauseStatus: document.querySelector('#race-clock-pause-status'),
   remaining: document.querySelector('#race-clock-remaining'),
   nextTitle: document.querySelector('#race-clock-next-title'),
 };
@@ -39,6 +40,9 @@ function createMarkers() {
 function getDisplayedNow() {
   const currentState = raceClockState.payload.state;
   if (!currentState) return Date.now();
+  if (currentState.isPaused && Number.isFinite(Number(currentState.pausedDisplayedTime))) {
+    return Number(currentState.pausedDisplayedTime);
+  }
   return Date.now() + Number(currentState.globalOffsetSeconds || 0) * 1000;
 }
 
@@ -87,7 +91,7 @@ function renderCountdown() {
 }
 
 function renderClock() {
-  const now = new Date();
+  const now = new Date(getDisplayedNow());
   const seconds = now.getSeconds() + (now.getMilliseconds() / 1000);
   const minutes = now.getMinutes() + (seconds / 60);
   const hours = (now.getHours() % 12) + (minutes / 60);
@@ -95,6 +99,11 @@ function renderClock() {
   raceClockElements.hourHand.style.transform = `translateX(-50%) rotate(${hours * 30}deg)`;
   raceClockElements.minuteHand.style.transform = `translateX(-50%) rotate(${minutes * 6}deg)`;
   raceClockElements.secondHand.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
+  const isPaused = Boolean(raceClockState.payload.state?.isPaused);
+  raceClockElements.face?.classList.toggle('is-paused', isPaused);
+  if (raceClockElements.pauseStatus) {
+    raceClockElements.pauseStatus.hidden = !isPaused;
+  }
 }
 
 function render() {

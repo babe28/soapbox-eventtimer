@@ -14,6 +14,7 @@ const liveSocket = io();
 const liveElements = {
   root: document.querySelector('#live-view'),
   fullscreenToggle: document.querySelector('#live-fullscreen-toggle'),
+  pauseStatus: document.querySelector('#live-pause-status'),
   offsetStatus: document.querySelector('#live-offset-status'),
   browserTime: document.querySelector('#live-browser-time'),
   title: document.querySelector('#live-title'),
@@ -123,6 +124,9 @@ function formatOffsetLabel(seconds) {
 function getDisplayedNow() {
   const currentState = liveState.payload.state;
   if (!currentState) return Date.now();
+  if (currentState.isPaused && Number.isFinite(Number(currentState.pausedDisplayedTime))) {
+    return Number(currentState.pausedDisplayedTime);
+  }
   return Date.now() + currentState.globalOffsetSeconds * 1000;
 }
 
@@ -183,6 +187,8 @@ function renderMessage() {
 }
 
 function renderBrowserTime() {
+  const isPaused = Boolean(liveState.payload.state?.isPaused);
+
   if (liveElements.offsetStatus) {
     const offsetSeconds = Number(liveState.payload.state?.globalOffsetSeconds ?? 0);
     liveElements.offsetStatus.textContent = formatOffsetLabel(offsetSeconds);
@@ -190,6 +196,12 @@ function renderBrowserTime() {
     liveElements.offsetStatus.classList.toggle('is-behind', offsetSeconds < 0);
     liveElements.offsetStatus.classList.toggle('is-on-time', offsetSeconds === 0);
   }
+
+  if (liveElements.pauseStatus) {
+    liveElements.pauseStatus.hidden = !isPaused;
+  }
+
+  liveElements.root.classList.toggle('is-paused', isPaused);
 
   if (liveElements.browserTime) {
     liveElements.browserTime.textContent = formatBrowserDateTime(Date.now());

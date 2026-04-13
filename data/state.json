@@ -1,9 +1,9 @@
 {
-  "globalOffsetSeconds": 0,
+  "globalOffsetSeconds": -13,
   "isPaused": false,
   "pausedAt": null,
   "pausedDisplayedTime": null,
-  "currentScheduleId": "evt_014",
+  "currentScheduleId": "evt_017",
   "dashboardConfig": {
     "showPerEventSyncButtons": false,
     "eventTypeColors": {
