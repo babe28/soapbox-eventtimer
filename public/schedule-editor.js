@@ -14,6 +14,7 @@ const editorElements = {
   entryCount: document.querySelector('#entry-count'),
   editorStatus: document.querySelector('#editor-status'),
   editorList: document.querySelector('#editor-list'),
+  overlapWarning: document.querySelector('#overlap-warning'),
   entryForm: document.querySelector('#entry-form'),
   timerForm: document.querySelector('#timer-form'),
   dashboardForm: document.querySelector('#dashboard-form'),
@@ -154,6 +155,16 @@ function getEntryIndexById(id) {
   return editorState.schedule.findIndex((item) => item.id === id);
 }
 
+function shiftEntriesAfterIndex(index, deltaMs) {
+  if (!Number.isFinite(deltaMs) || deltaMs === 0) return;
+
+  for (let currentIndex = index + 1; currentIndex < editorState.schedule.length; currentIndex += 1) {
+    const item = editorState.schedule[currentIndex];
+    const shiftedStart = new Date(item.start).getTime() + deltaMs;
+    item.start = new Date(shiftedStart).toISOString();
+  }
+}
+
 function insertEntryAt(entry, index) {
   const safeIndex = Math.max(0, Math.min(index, editorState.schedule.length));
   editorState.schedule.splice(safeIndex, 0, entry);
@@ -209,12 +220,54 @@ function renderLiveViewAccess() {
   editorElements.raceClockQr.src = getQrUrl(raceClockUrl);
 }
 
+function getOverlapIds() {
+  const overlapIds = new Set();
+  const sorted = editorState.schedule
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      start: new Date(item.start).getTime(),
+      end: new Date(item.start).getTime() + Number(item.duration) * 1000,
+    }))
+    .sort((a, b) => a.start - b.start);
+
+  for (let index = 0; index < sorted.length - 1; index += 1) {
+    const current = sorted[index];
+    const next = sorted[index + 1];
+    if (current.end > next.start) {
+      overlapIds.add(current.id);
+      overlapIds.add(next.id);
+    }
+  }
+
+  return overlapIds;
+}
+
+function renderOverlapWarning() {
+  const overlapIds = getOverlapIds();
+  if (overlapIds.size === 0) {
+    editorElements.overlapWarning.hidden = true;
+    editorElements.overlapWarning.textContent = '';
+    return overlapIds;
+  }
+
+  const overlappedEntries = editorState.schedule
+    .filter((item) => overlapIds.has(item.id))
+    .map((item) => item.title || item.id)
+    .join(' / ');
+
+  editorElements.overlapWarning.hidden = false;
+  editorElements.overlapWarning.textContent = `時間が重複しているイベントがあります: ${overlappedEntries}`;
+  return overlapIds;
+}
+
 function renderList() {
+  const overlapIds = renderOverlapWarning();
   editorElements.entryCount.textContent = String(editorState.schedule.length);
   editorElements.editorList.innerHTML = editorState.schedule
     .map((item) => `
       <article
-        class="editor-card ${item.id === editorState.selectedId ? 'is-current' : ''}"
+        class="editor-card ${item.id === editorState.selectedId ? 'is-current' : ''} ${overlapIds.has(item.id) ? 'has-overlap' : ''}"
         data-entry-id="${item.id}"
         draggable="true"
       >
@@ -450,16 +503,29 @@ editorElements.entryForm.addEventListener('submit', (event) => {
     return;
   }
 
+  const entryIndex = getEntryIndexById(entry.id);
+  const oldEnd = new Date(entry.start).getTime() + Number(entry.duration) * 1000;
+  const nextStart = fromDatetimeLocal(form.start.value);
+  const nextDuration = Math.max(1, Number(form.duration.value));
+  const nextEnd = new Date(nextStart).getTime() + nextDuration * 1000;
+  const shouldShiftFollowing = event.submitter?.value === 'shift-following';
+
   entry.id = nextId;
   entry.title = form.title.value.trim();
   entry.subTitle = form.subTitle.value.trim();
-  entry.start = fromDatetimeLocal(form.start.value);
-  entry.duration = Math.max(1, Number(form.duration.value));
+  entry.start = nextStart;
+  entry.duration = nextDuration;
   entry.section = form.section.value.trim();
   entry.type = form.type.value;
+
+  if (shouldShiftFollowing && entryIndex >= 0) {
+    shiftEntriesAfterIndex(entryIndex, nextEnd - oldEnd);
+  }
+
   editorState.selectedId = entry.id;
   markDirty(true);
   renderAll();
+  setStatus(shouldShiftFollowing ? 'イベントを反映し、後続イベントもあわせて移動しました' : 'イベントを反映しました');
 });
 
 editorElements.entryForm.elements.duration.addEventListener('input', () => {

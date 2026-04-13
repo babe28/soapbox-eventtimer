@@ -673,6 +673,22 @@ body {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent);
 }
 
+.editor-card.has-overlap {
+  border-color: color-mix(in srgb, var(--danger) 62%, var(--line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 18%, transparent);
+}
+
+.editor-warning {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--danger) 60%, var(--line));
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  color: var(--danger);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .schedule-side {
   display: flex;
   flex-direction: column;
@@ -1689,7 +1705,7 @@ pre {
 
 .live-view-browser-time {
   margin: 0;
-  font-size: 1rem;
+  font-size: 2rem;
   letter-spacing: 0.04em;
   color: rgba(255, 255, 255, 0.72);
   text-align: right;
@@ -2062,7 +2078,7 @@ pre {
   }
 
   .live-view-browser-time {
-    font-size: 0.88rem;
+    font-size: 1.55rem;
   }
 
   .live-view-copy h1 {

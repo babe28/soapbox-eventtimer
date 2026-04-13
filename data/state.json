@@ -5,7 +5,7 @@
   "pausedDisplayedTime": null,
   "currentScheduleId": "evt_017",
   "dashboardConfig": {
-    "showPerEventSyncButtons": false,
+    "showPerEventSyncButtons": true,
     "eventTypeColors": {
       "normal": "#1d6b48",
       "break": "#b07300",
@@ -18,7 +18,7 @@
     "text": "",
     "line1": "",
     "line2": "",
-    "blinkUntil": 0,
+    "blinkUntil": 1776046811934,
     "redUntil": 0
   },
   "timers": [

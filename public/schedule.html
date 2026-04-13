@@ -44,6 +44,7 @@
             </div>
             <button id="add-entry" class="ghost-button">追加</button>
           </div>
+          <p id="overlap-warning" class="editor-warning" hidden></p>
           <div id="editor-list" class="editor-list"></div>
         </section>
 
@@ -99,6 +100,7 @@
             </label>
             <div class="editor-actions">
               <button type="submit">反映</button>
+              <button type="submit" name="applyMode" value="shift-following" class="primary-button">反映（その後のイベントも合わせて動かす）</button>
               <button type="button" id="duplicate-entry" class="ghost-button">複製</button>
               <button type="button" id="delete-entry" class="danger-button">削除</button>
             </div>
