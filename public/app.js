@@ -8,6 +8,8 @@ const state = {
     previewIndex: null,
     theme: 'light',
     liveMessageDraft: '',
+    lastCenteredItemId: null,
+    lastActualCurrentId: null,
   },
 };
 
@@ -20,6 +22,8 @@ const elements = {
   offsetSeconds: document.querySelector('#offset-seconds'),
   offsetStatus: document.querySelector('#offset-status'),
   progressDiff: document.querySelector('#progress-diff'),
+  pauseStatus: document.querySelector('#pause-status'),
+  pauseToggle: document.querySelector('#pause-toggle'),
   resetOffset: document.querySelector('#reset-offset'),
   currentEvent: document.querySelector('#current-event'),
   scheduleList: document.querySelector('#schedule-list'),
@@ -188,6 +192,9 @@ function setDonutValue(element, percent) {
 function getDisplayedNow() {
   const currentState = state.payload.state;
   if (!currentState) return Date.now();
+  if (currentState.isPaused && Number.isFinite(Number(currentState.pausedDisplayedTime))) {
+    return Number(currentState.pausedDisplayedTime);
+  }
   return Date.now() + currentState.globalOffsetSeconds * 1000;
 }
 
@@ -209,6 +216,13 @@ function getCurrentIndex() {
 
   if (liveIndex >= 0) return liveIndex;
 
+  const upcomingIndex = state.payload.schedule.findIndex((item) => {
+    const start = new Date(item.start).getTime();
+    return displayedNow < start;
+  });
+
+  if (upcomingIndex >= 0) return upcomingIndex;
+
   const currentId = state.payload.state?.currentScheduleId;
   return state.payload.schedule.findIndex((item) => item.id === currentId);
 }
@@ -226,6 +240,9 @@ function renderOverview() {
   const offsetLabel = formatOffsetLabel(currentState.globalOffsetSeconds);
   elements.offsetStatus.textContent = offsetLabel;
   elements.progressDiff.textContent = offsetLabel;
+  elements.pauseStatus.textContent = currentState.isPaused ? '一時停止中' : '進行中';
+  elements.pauseToggle.textContent = currentState.isPaused ? 'イベントを再開' : 'イベントを一時停止';
+  elements.pauseToggle.classList.toggle('is-active', Boolean(currentState.isPaused));
 }
 
 function renderHeaderStats() {
@@ -318,6 +335,7 @@ function renderCurrentEvent() {
         <button class="ghost-button shift-button shift-button-neutral" data-preview-action="next" ${nextItem ? '' : 'disabled'}>次へ</button>
         <button class="force-button shift-button shift-button-prev" data-force-id="${previousItem ? previousItem.id : ''}" ${previousItem ? '' : 'disabled'}>戻す（強制）</button>
         <button class="force-button shift-button shift-button-next" data-force-id="${nextItem ? nextItem.id : ''}" ${nextItem ? '' : 'disabled'}>次へ（強制）</button>
+        <button class="ghost-button shift-button shift-button-current" data-show-current>現在のイベントを表示</button>
       </div>
     </div>
   `;
@@ -419,6 +437,49 @@ function updateScheduleLive() {
   });
 }
 
+function scrollScheduleItemIntoView(itemId) {
+  if (!itemId) return;
+  const target = elements.scheduleList.querySelector(`[data-item-id="${itemId}"]`);
+  if (!target) return;
+
+  target.scrollIntoView({
+    block: 'center',
+    behavior: 'smooth',
+  });
+}
+
+function syncCurrentEventTransition() {
+  const currentIndex = getCurrentIndex();
+  const currentItem = currentIndex >= 0 ? state.payload.schedule[currentIndex] : null;
+  const currentId = currentItem?.id ?? null;
+
+  if (state.ui.lastActualCurrentId !== currentId) {
+    state.ui.lastActualCurrentId = currentId;
+    if (state.ui.previewIndex == null) {
+      renderCurrentEvent();
+      updateCurrentEventLive();
+    }
+  }
+
+  if (currentId && state.ui.lastCenteredItemId !== currentId) {
+    state.ui.lastCenteredItemId = currentId;
+    scrollScheduleItemIntoView(currentId);
+  }
+}
+
+function showCurrentEvent() {
+  state.ui.previewIndex = null;
+  renderStatic();
+  updateLiveView();
+
+  const currentIndex = getCurrentIndex();
+  const currentItem = currentIndex >= 0 ? state.payload.schedule[currentIndex] : null;
+  if (currentItem?.id) {
+    state.ui.lastCenteredItemId = currentItem.id;
+    scrollScheduleItemIntoView(currentItem.id);
+  }
+}
+
 function getLiveTimerValue(timer) {
   if (timer.status !== 'running') return timer.value;
   const elapsed = Math.max(0, Math.floor((Date.now() - timer.lastUpdate) / 1000));
@@ -484,6 +545,7 @@ async function bootstrap() {
   state.ui.previewIndex = null;
   renderStatic();
   updateLiveView();
+  syncCurrentEventTransition();
 }
 
 socket.on('connect', () => {
@@ -501,6 +563,7 @@ socket.on('sync_state', (payload) => {
   }
   renderStatic();
   updateLiveView();
+  syncCurrentEventTransition();
 });
 
 document.addEventListener('click', async (event) => {
@@ -516,6 +579,16 @@ document.addEventListener('click', async (event) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value: Number(offsetButton.dataset.offset) }),
+    });
+    return;
+  }
+
+  if (event.target.closest('#pause-toggle')) {
+    state.ui.previewIndex = null;
+    await fetch('/api/pause-toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
     });
     return;
   }
@@ -556,6 +629,11 @@ document.addEventListener('click', async (event) => {
     state.ui.previewIndex = Math.max(0, Math.min(activeIndex + delta, state.payload.schedule.length - 1));
     renderStatic();
     updateLiveView();
+    return;
+  }
+
+  if (event.target.closest('[data-show-current]')) {
+    showCurrentEvent();
     return;
   }
 
@@ -603,6 +681,7 @@ elements.liveMessageInput?.addEventListener('input', () => {
 setInterval(() => {
   if (!state.payload.state) return;
   updateLiveView();
+  syncCurrentEventTransition();
 }, 1000);
 
 initializeTheme();

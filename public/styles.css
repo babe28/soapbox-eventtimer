@@ -555,6 +555,14 @@ body {
   background: var(--accent);
 }
 
+.offset-controls .offset-button-pause {
+  background: #7d245c;
+}
+
+.offset-controls .offset-button-pause.is-active {
+  background: #4d7f2d;
+}
+
 .offset-controls .offset-button-reset {
   grid-column: 1 / -1;
   background: rgba(22, 48, 43, 0.14);
@@ -1030,6 +1038,10 @@ body {
 
 .shift-button-next {
   background: var(--accent);
+}
+
+.shift-button-current {
+  grid-column: 1 / -1;
 }
 
 .event-shift-actions button[disabled] {

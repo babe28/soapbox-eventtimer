@@ -80,6 +80,10 @@
               <span>進行差分</span>
               <strong id="progress-diff">定刻</strong>
             </article>
+            <article class="metric-card">
+              <span>進行状態</span>
+              <strong id="pause-status">進行中</strong>
+            </article>
           </div>
 
           <div class="offset-controls">
@@ -89,6 +93,7 @@
             <button class="offset-button offset-button-plus" data-offset="30">+30s</button>
             <button class="offset-button offset-button-plus" data-offset="60">+1m</button>
             <button class="offset-button offset-button-plus" data-offset="300">+5m</button>
+            <button class="offset-button offset-button-pause" id="pause-toggle">イベントを一時停止</button>
             <button class="offset-button offset-button-reset" id="reset-offset">0に戻す</button>
           </div>
         </section>

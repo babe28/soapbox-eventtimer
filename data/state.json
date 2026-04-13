@@ -1,6 +1,9 @@
 {
   "globalOffsetSeconds": 0,
   "isPaused": false,
+  "pausedAt": null,
+  "pausedDisplayedTime": null,
+  "currentScheduleId": "evt_014",
   "dashboardConfig": {
     "showPerEventSyncButtons": false,
     "eventTypeColors": {
@@ -37,6 +40,5 @@
       "initialValue": 600,
       "lastUpdate": 1776044172209
     }
-  ],
-  "currentScheduleId": "evt_008"
+  ]
 }

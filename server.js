@@ -32,6 +32,8 @@ function createDefaultDashboardConfig() {
 const createDefaultState = () => ({
   globalOffsetSeconds: 0,
   isPaused: false,
+  pausedAt: null,
+  pausedDisplayedTime: null,
   dashboardConfig: createDefaultDashboardConfig(),
   liveView: {
     text: '',
@@ -202,8 +204,16 @@ function normalizeDashboardConfig(source) {
   };
 }
 
+function getDisplayedNow(referenceTime = Date.now()) {
+  if (state.isPaused && Number.isFinite(Number(state.pausedDisplayedTime))) {
+    return Number(state.pausedDisplayedTime);
+  }
+
+  return referenceTime + state.globalOffsetSeconds * 1000;
+}
+
 function updateCurrentScheduleId(referenceTime = Date.now()) {
-  const displayedNow = referenceTime + state.globalOffsetSeconds * 1000;
+  const displayedNow = getDisplayedNow(referenceTime);
   const currentItem = schedule.find((item) => {
     const start = new Date(item.start).getTime();
     const end = start + item.duration * 1000;
@@ -327,7 +337,7 @@ function applyTimerAction(timer, action, value) {
 }
 
 function getScheduleIndexByCurrent(referenceTime = Date.now()) {
-  const displayedNow = referenceTime + state.globalOffsetSeconds * 1000;
+  const displayedNow = getDisplayedNow(referenceTime);
   return schedule.findIndex((item) => {
     const start = new Date(item.start).getTime();
     const end = start + item.duration * 1000;
@@ -368,7 +378,7 @@ function shiftSchedule(action, referenceTime = Date.now()) {
   if (schedule.length === 0) return false;
 
   const currentIndex = getScheduleIndexByCurrent(referenceTime);
-  const displayedNow = referenceTime + state.globalOffsetSeconds * 1000;
+  const displayedNow = getDisplayedNow(referenceTime);
 
   if (action === 'hold') {
     const item = currentIndex >= 0 ? schedule[currentIndex] : schedule[0];
@@ -401,7 +411,26 @@ function resyncToSchedule(scheduleId, referenceTime = Date.now()) {
   const item = schedule.find((entry) => entry.id === scheduleId);
   if (!item) return false;
   state.globalOffsetSeconds = Math.floor((new Date(item.start).getTime() - referenceTime + 1000) / 1000);
+  state.isPaused = false;
+  state.pausedAt = null;
+  state.pausedDisplayedTime = null;
   return true;
+}
+
+function togglePause(referenceTime = Date.now()) {
+  if (state.isPaused) {
+    const resumedDisplayedNow = Number(state.pausedDisplayedTime ?? getDisplayedNow(referenceTime));
+    state.globalOffsetSeconds = Math.floor((resumedDisplayedNow - referenceTime) / 1000);
+    state.isPaused = false;
+    state.pausedAt = null;
+    state.pausedDisplayedTime = null;
+    return 'resumed';
+  }
+
+  state.pausedDisplayedTime = getDisplayedNow(referenceTime);
+  state.pausedAt = referenceTime;
+  state.isPaused = true;
+  return 'paused';
 }
 
 async function initializeData() {
@@ -435,6 +464,8 @@ function loadState(source) {
   return {
     globalOffsetSeconds: Number(source?.globalOffsetSeconds ?? fallback.globalOffsetSeconds),
     isPaused: Boolean(source?.isPaused ?? fallback.isPaused),
+    pausedAt: source?.pausedAt != null ? Number(source.pausedAt) : null,
+    pausedDisplayedTime: source?.pausedDisplayedTime != null ? Number(source.pausedDisplayedTime) : null,
     currentScheduleId: source?.currentScheduleId ?? fallback.currentScheduleId,
     dashboardConfig: normalizeDashboardConfig(source?.dashboardConfig),
     liveView: {
@@ -627,6 +658,9 @@ app.post('/api/live-message/effect', async (req, res) => {
 app.post('/api/offset', async (req, res) => {
   const beforeOffsetSeconds = state.globalOffsetSeconds;
   state.globalOffsetSeconds += Number(req.body?.value || 0);
+  state.isPaused = false;
+  state.pausedAt = null;
+  state.pausedDisplayedTime = null;
   await appendProgressLog({
     action: 'offset',
     detail: `手動オフセット ${Number(req.body?.value || 0)}秒`,
@@ -635,6 +669,21 @@ app.post('/api/offset', async (req, res) => {
   });
   await syncAll();
   res.json({ success: true, state: getPayload().state });
+});
+
+app.post('/api/pause-toggle', async (_req, res) => {
+  const beforeOffsetSeconds = state.globalOffsetSeconds;
+  const action = togglePause();
+
+  await appendProgressLog({
+    action: 'pause-toggle',
+    detail: action === 'paused' ? '進行を一時停止' : '進行を再開',
+    beforeOffsetSeconds,
+    afterOffsetSeconds: state.globalOffsetSeconds,
+  });
+
+  await syncAll();
+  res.json({ success: true, action, state: getPayload().state });
 });
 
 app.post('/api/resync', async (req, res) => {
