@@ -6,3 +6,5 @@ build/
 AGENTS.md
 data/schedules/
 logs/
+data/progress-log.json
+data/state.json

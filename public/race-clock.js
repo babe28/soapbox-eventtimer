@@ -6,6 +6,7 @@ const raceClockState = {
   },
   ui: {
     countdownSignature: '',
+    theme: 'light',
   },
 };
 
@@ -37,6 +38,18 @@ function createMarkers() {
   }
 }
 
+function applyTheme(theme) {
+  const nextTheme = theme === 'dark' ? 'dark' : 'light';
+  raceClockState.ui.theme = nextTheme;
+  document.documentElement.dataset.theme = nextTheme;
+}
+
+function initializeTheme() {
+  const savedTheme = window.localStorage.getItem('soapbox-theme');
+  const preferredDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(savedTheme || (preferredDark ? 'dark' : 'light'));
+}
+
 function getDisplayedNow() {
   const currentState = raceClockState.payload.state;
   if (!currentState) return Date.now();
@@ -53,18 +66,17 @@ function formatCountdown(totalSeconds) {
   return `${minutes}分${String(seconds).padStart(2, '0')}秒`;
 }
 
-function getNextRace(referenceTime) {
+function getNextEvent(referenceTime) {
   return raceClockState.payload.schedule.find((item) => {
-    if (item?.type !== 'race') return false;
     return new Date(item.start).getTime() > referenceTime;
   }) ?? null;
 }
 
 function renderCountdown() {
   const displayedNow = getDisplayedNow();
-  const nextRace = getNextRace(displayedNow);
+  const nextEvent = getNextEvent(displayedNow);
 
-  if (!nextRace) {
+  if (!nextEvent) {
     const signature = 'empty';
     if (raceClockState.ui.countdownSignature === signature) {
       return;
@@ -72,13 +84,13 @@ function renderCountdown() {
 
     raceClockState.ui.countdownSignature = signature;
     raceClockElements.face?.classList.add('is-empty');
-    raceClockElements.remaining.textContent = '予定されているレースはありません';
+    raceClockElements.remaining.textContent = '予定されているイベントはありません';
     raceClockElements.nextTitle.textContent = '';
     return;
   }
 
-  const remainingSeconds = Math.max(0, Math.floor((new Date(nextRace.start).getTime() - displayedNow) / 1000));
-  const signature = `${nextRace.id}:${remainingSeconds}`;
+  const remainingSeconds = Math.max(0, Math.floor((new Date(nextEvent.start).getTime() - displayedNow) / 1000));
+  const signature = `${nextEvent.id}:${remainingSeconds}`;
 
   if (raceClockState.ui.countdownSignature === signature) {
     return;
@@ -87,11 +99,11 @@ function renderCountdown() {
   raceClockState.ui.countdownSignature = signature;
   raceClockElements.face?.classList.remove('is-empty');
   raceClockElements.remaining.textContent = formatCountdown(remainingSeconds);
-  raceClockElements.nextTitle.textContent = nextRace.title || '';
+  raceClockElements.nextTitle.textContent = nextEvent.title || '';
 }
 
 function renderClock() {
-  const now = new Date(getDisplayedNow());
+  const now = new Date();
   const seconds = now.getSeconds() + (now.getMilliseconds() / 1000);
   const minutes = now.getMinutes() + (seconds / 60);
   const hours = (now.getHours() % 12) + (minutes / 60);
@@ -124,5 +136,6 @@ raceClockSocket.on('sync_state', (payload) => {
 });
 
 createMarkers();
+initializeTheme();
 bootstrapRaceClock();
 render();

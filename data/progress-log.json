@@ -246,5 +246,93 @@
     "detail": "進行を再開",
     "beforeOffsetSeconds": -11,
     "afterOffsetSeconds": -13
+  },
+  {
+    "id": "log_1776047191100",
+    "timestamp": "2026-04-13T02:26:31.100Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -13,
+    "afterOffsetSeconds": -13
+  },
+  {
+    "id": "log_1776047193131",
+    "timestamp": "2026-04-13T02:26:33.131Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -13,
+    "afterOffsetSeconds": -16
+  },
+  {
+    "id": "log_1776047194916",
+    "timestamp": "2026-04-13T02:26:34.916Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -16,
+    "afterOffsetSeconds": -16
+  },
+  {
+    "id": "log_1776047195874",
+    "timestamp": "2026-04-13T02:26:35.874Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -16,
+    "afterOffsetSeconds": -17
+  },
+  {
+    "id": "log_1776047196481",
+    "timestamp": "2026-04-13T02:26:36.481Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -17,
+    "afterOffsetSeconds": -17
+  },
+  {
+    "id": "log_1776047197208",
+    "timestamp": "2026-04-13T02:26:37.208Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -17,
+    "afterOffsetSeconds": -18
+  },
+  {
+    "id": "log_1776047201322",
+    "timestamp": "2026-04-13T02:26:41.322Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -18,
+    "afterOffsetSeconds": -18
+  },
+  {
+    "id": "log_1776047202332",
+    "timestamp": "2026-04-13T02:26:42.332Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -18,
+    "afterOffsetSeconds": -20
+  },
+  {
+    "id": "log_1776047203869",
+    "timestamp": "2026-04-13T02:26:43.869Z",
+    "action": "pause-toggle",
+    "detail": "進行を一時停止",
+    "beforeOffsetSeconds": -20,
+    "afterOffsetSeconds": -20
+  },
+  {
+    "id": "log_1776047204335",
+    "timestamp": "2026-04-13T02:26:44.335Z",
+    "action": "pause-toggle",
+    "detail": "進行を再開",
+    "beforeOffsetSeconds": -20,
+    "afterOffsetSeconds": -21
+  },
+  {
+    "id": "log_1776047206673",
+    "timestamp": "2026-04-13T02:26:46.673Z",
+    "action": "offset",
+    "detail": "手動オフセット 21秒",
+    "beforeOffsetSeconds": -21,
+    "afterOffsetSeconds": 0
   }
 ]

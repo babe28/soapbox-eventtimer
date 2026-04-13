@@ -543,6 +543,21 @@ body {
   filter: brightness(1.05);
 }
 
+:root[data-theme="dark"] .primary-button,
+:root[data-theme="dark"] #save-timers,
+:root[data-theme="dark"] #save-named-schedule,
+:root[data-theme="dark"] #load-named-schedule,
+:root[data-theme="dark"] .timer-actions button,
+:root[data-theme="dark"] .editor-actions button:not(.ghost-button):not(.danger-button) {
+  color: #071412;
+}
+
+:root[data-theme="dark"] .event-shift-actions .shift-button-neutral {
+  background: rgba(231, 244, 239, 0.1);
+  color: var(--ink);
+  border: 1px solid rgba(231, 244, 239, 0.12);
+}
+
 .offset-controls {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -1518,10 +1533,47 @@ pre {
   z-index: 4;
 }
 
+:root[data-theme="dark"] .race-clock-body {
+  background:
+    radial-gradient(circle at top left, rgba(255, 141, 92, 0.12), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(51, 179, 125, 0.08), transparent 32%),
+    linear-gradient(155deg, #040b0a 0%, #081312 42%, #10211d 100%);
+}
+
+:root[data-theme="dark"] .race-clock-face {
+  background:
+    radial-gradient(circle at 35% 30%, rgba(33, 48, 45, 0.96), rgba(16, 28, 27, 0.98) 58%, rgba(8, 16, 15, 1) 100%);
+  box-shadow:
+    inset 0 0 0 2px rgba(231, 244, 239, 0.08),
+    inset 0 10px 24px rgba(255, 255, 255, 0.05),
+    0 16px 42px rgba(0, 0, 0, 0.34);
+}
+
+:root[data-theme="dark"] .race-clock-face::before {
+  border-color: rgba(231, 244, 239, 0.08);
+}
+
+:root[data-theme="dark"] .race-clock-marker {
+  background: rgba(231, 244, 239, 0.8);
+}
+
+:root[data-theme="dark"] .race-clock-hand.hour {
+  background: linear-gradient(180deg, #d7ebe4 0%, #9ab7af 100%);
+}
+
+:root[data-theme="dark"] .race-clock-hand.minute {
+  background: linear-gradient(180deg, #edf7f2 0%, #b7cbc4 100%);
+}
+
+:root[data-theme="dark"] .race-clock-center {
+  background: #edf7f2;
+  box-shadow: 0 0 0 4px rgba(7, 20, 18, 0.92);
+}
+
 .race-clock-caption {
   position: absolute;
   left: 50%;
-  top: 30%;
+  top: 11%;
   margin: 0;
   transform: translateX(-50%);
   font-size: clamp(1rem, 2.4vw, 1.14rem);
@@ -1533,10 +1585,16 @@ pre {
   z-index: 1;
 }
 
+:root[data-theme="dark"] .race-clock-caption,
+:root[data-theme="dark"] .race-clock-remaining,
+:root[data-theme="dark"] .race-clock-next-title {
+  color: #edf7f2;
+}
+
 .race-clock-pause-status {
   position: absolute;
   left: 50%;
-  top: 18%;
+  top: 22%;
   margin: 0;
   padding: 6px 14px;
   border-radius: 999px;
@@ -1564,8 +1622,8 @@ pre {
 .race-clock-next-title {
   position: absolute;
   left: 50%;
-  top: 70%;
-  width: calc(var(--face-size) * 0.56);
+  bottom: 14%;
+  width: calc(var(--face-size) * 0.68);
   min-height: 1.2em;
   margin: 0;
   transform: translateX(-50%);
@@ -2019,6 +2077,19 @@ pre {
   .schedule-side {
     align-items: flex-start;
     min-width: 0;
+  }
+
+  .race-clock-caption {
+    top: 9%;
+  }
+
+  .race-clock-pause-status {
+    top: 20%;
+  }
+
+  .race-clock-next-title {
+    bottom: 11%;
+    width: calc(var(--face-size) * 0.76);
   }
 
   .timer-config-card {

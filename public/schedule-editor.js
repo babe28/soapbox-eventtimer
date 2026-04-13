@@ -381,6 +381,14 @@ function selectEntry(id) {
   renderAll();
 }
 
+function getCurrentScheduleId() {
+  const currentId = editorState.rawState?.currentScheduleId;
+  if (currentId && editorState.schedule.some((item) => item.id === currentId)) {
+    return currentId;
+  }
+  return editorState.schedule[0]?.id ?? null;
+}
+
 async function loadSchedule() {
   const [scheduleResponse, bootstrapResponse, savedScheduleResponse] = await Promise.all([
     fetch('/api/schedule'),
@@ -396,7 +404,7 @@ async function loadSchedule() {
     progressLog: bootstrapData.progressLog ?? [],
   };
   editorState.savedSchedules = savedScheduleData.savedSchedules ?? [];
-  editorState.selectedId = scheduleData.schedule[0]?.id ?? null;
+  editorState.selectedId = getCurrentScheduleId();
   markDirty(false);
   renderAll();
 }
